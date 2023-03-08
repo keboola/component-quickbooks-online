@@ -3,7 +3,7 @@ import logging
 from keboola.component.base import ComponentBase
 
 from mapping import Mapping
-from quickbooks import quickbooks
+from client import QuickbooksClient
 from report_mapping import ReportMapping
 
 # configuration variables
@@ -47,7 +47,7 @@ class Component(ComponentBase):
 
         # INITIALIZING QUICKBOOKS INSTANCES
         oauth = self.configuration.oauth_credentials
-        quickbooks_param = quickbooks(company_id=company_id, oauth=oauth)
+        quickbooks_param = QuickbooksClient(company_id=company_id, oauth=oauth)
 
         # Fetching reports for each configured endpoint
         for endpt in endpoints:

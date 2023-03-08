@@ -1,9 +1,3 @@
-'''
-"__author__ = 'Leo Chan'"
-"__credits__ = 'Keboola 2017'"
-"__project__ = 'kbc_quickbooks'"
-
-'''
 import os
 import sys
 import json
@@ -16,8 +10,7 @@ from requests.auth import HTTPBasicAuth
 
 from keboola.component.base import ComponentBase  # noqa
 
-
-# Get AUthorization
+# Get Authorization
 # oauth = ComponentBase.configuration.oauth_credentials
 '''
 credentials = oauth["oauth_api"]["credentials"]["#data"]
@@ -41,7 +34,6 @@ logging.info("KBC refresh token: {0}XXXX{1}".format(
     refresh_token[0:4], refresh_token[-4:]))
 '''
 
-
 # QuickBooks Parameters
 BASE_URL = "https://quickbooks.api.intuit.com/v3/company"
 
@@ -51,7 +43,11 @@ requesting = requests.Session()
 logging.info("Quickbooks Version: {0}".format("0.2.6"))
 
 
-class quickbooks():
+class QuickBooksClientException(Exception):
+    pass
+
+
+class QuickbooksClient:
     """
     QuickBooks Requests Handler
     """
@@ -111,34 +107,22 @@ class quickbooks():
 
         logging.info("Accessing QuickBooks API...")
         if report_api_bool:
-
             logging.info("Processing Report: {0}".format(endpoint))
-
             if self.endpoint == "CustomQuery":
-
-                # if endpt["start_date"] == '':
                 if start_date == '':
-
                     raise Exception(
                         "Please enter query for CustomQuery. Exit...")
                 logging.info("Input Custom Query: {0}".format(self.start_date))
                 self.custom_request(self.start_date)
-
             else:
-
                 self.report_request(endpoint, start_date, end_date)
         else:
-
             self.count = self.get_count()  # total count of records for pagination
-
             if self.count == 0:
-
                 logging.info(
                     "There are no returns for {0}".format(self.endpoint))
                 self.data = []
-
             else:
-
                 self.data_request()
 
     def refresh_access_token(self):
@@ -150,6 +134,7 @@ class quickbooks():
         app_key_secret = "{0}:{1}".format(self.app_key, self.app_secret)  # noqa
         url = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
 
+        results = None
         request_success = False
         while not request_success:
             # Request Parameters
@@ -164,35 +149,8 @@ class quickbooks():
 
             # If access token was not fetched
             if "error" in results:
-
-                logging.info("Fetching Refresh Token from State file.")
-
-                if not self.new_refresh_token:
-
-                    if os.path.isfile("/data/in/state.json"):
-
-                        # Fetching refresh token from state file
-                        logging.info("Fetched State file...")
-
-                        with open("/data/in/state.json", 'r') as f:
-                            temp = json.load(f)
-
-                        if "refresh_token" in temp:
-
-                            self.refresh_token = temp["refresh_token"]
-                            logging.info("State refresh token: {0}XXXX{1}".format(
-                                self.refresh_token[0:4], self.refresh_token[-4:]))
-
-                    self.new_refresh_token = True
-
-                else:
-
-                    logging.error("Failed to refresh access token...")
-                    logging.error("Please re-authorize credentials...")
-                    sys.exit(1)
-
+                raise QuickBooksClientException("Cannot fetch new tokens.")
             else:
-
                 request_success = True
 
         access_token = results["access_token"]
@@ -205,22 +163,6 @@ class quickbooks():
 
         # Monitor if app has requested refresh token yet
         self.access_token_refreshed = True
-        self.write_refresh_token()  # Writing new refresh token into state file
-
-    def write_refresh_token(self):
-        """
-        Outputting Refresh Token into State File
-        """
-
-        logging.info("Outputting State file...")
-        temp = {}
-        temp["refresh_token"] = self.refresh_token
-
-        logging.info("refresh_token (New): {0}XXXX{1}".format(
-            self.refresh_token[0:4], self.refresh_token[-4:]))
-
-        with open("/data/out/state.json", "w") as f:
-            json.dump(temp, f)
 
     def get_count(self):
         """
@@ -261,9 +203,8 @@ class quickbooks():
         request_success = False
         # request_fail = False
         while not request_success:
-
             headers = {
-                "Authorization": "Bearer "+self.access_token,
+                "Authorization": "Bearer " + self.access_token,
                 "Accept": "application/json"
             }
             logging.info('Requesting: {}'.format(url))
@@ -271,24 +212,20 @@ class quickbooks():
 
             # Outputting IntuitID
             logging.info(data.headers)
+            try:
+                results = json.loads(data.text)
+            except json.decoder.JSONDecodeError as e:
+                raise QuickBooksClientException(f"Cannot decode response: {data.text}") from e
 
-            results = json.loads(data.text)
             if "fault" in results or "Fault" in results:
-
                 if not self.access_token_refreshed:
-
                     logging.info("Refreshing Access Token")
                     self.refresh_access_token()
-
                 else:
-
                     logging.error('Response Headers: {}'.format(data.headers))
                     raise Exception(data)
-
             else:
-
                 request_success = True
-
         return results
 
     def data_request(self):
@@ -321,7 +258,6 @@ class quickbooks():
 
             # If API returns error, raise exception and terminate application
             if "fault" in results or "Fault" in results:
-
                 raise Exception(results)
 
             data = results["QueryResponse"][self.endpoint]
@@ -353,7 +289,6 @@ class quickbooks():
 
         # If API returns error, raise exception and terminate application
         if "fault" in results or "Fault" in results:
-
             raise Exception(results)
 
         data = results["QueryResponse"]
@@ -371,18 +306,17 @@ class quickbooks():
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-
                 date_param = "?columns=klass_name,account_name,account_num,chk_print_state,create_by,create_date," \
-                    "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name," \
-                    "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name," \
-                    "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt"
+                             "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name," \
+                             "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name," \
+                             "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt," \
+                             "credit_amt "
         else:
 
             startdate = (dateparser.parse(start_date)).strftime("%Y-%m-%d")
             enddate = (dateparser.parse(end_date)).strftime("%Y-%m-%d")
 
             if startdate > enddate:
-
                 raise Exception(
                     "Please validate your date parameter for {0}".format(endpoint))
 
@@ -391,19 +325,20 @@ class quickbooks():
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-
                 date_param = date_param + "&columns=dklass_name,account_name,account_num,chk_print_state," \
-                    "create_by,create_date,cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid," \
-                    "is_cleared,item_name,last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date," \
-                    "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount," \
-                    "debt_amt,credit_amt"
+                                          "create_by,create_date,cust_name,doc_num,emp_name,inv_date,is_adj," \
+                                          "is_ap_paid,is_ar_paid," \
+                                          "is_cleared,item_name,last_mod_by,last_mod_date,memo,name,quantity,rate," \
+                                          "split_acc,tx_date," \
+                                          "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name," \
+                                          "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt" \
 
         url = "{0}/{1}/reports/{2}{3}".format(BASE_URL,
                                               self.company_id, endpoint, date_param)
         if endpoint in self.reports_required_accounting_type:
 
-            accrual_url = url+"&accounting_method=Accrual"
-            cash_url = url+"&accounting_method=Cash"
+            accrual_url = url + "&accounting_method=Accrual"
+            cash_url = url + "&accounting_method=Cash"
 
             results = self._request(accrual_url)
             self.data = results
@@ -416,7 +351,8 @@ class quickbooks():
             results = self._request(url)
             self.data = results
 
-    def flatten_json(self, y):
+    @staticmethod
+    def flatten_json(y):
         """
         # Credits: https://gist.github.com/amirziai/2808d06f59a38138fa2d
         # flat out the json objects
@@ -426,24 +362,15 @@ class quickbooks():
         def flatten(x, name=''):
 
             if type(x) is dict:
-
                 for a in x:
-
                     flatten(x[a], name + a + '/')
-
             elif type(x) is list:
-
                 i = 0
-
                 for a in x:
-
                     flatten(a, name + str(i) + '/')
                     i += 1
-
             else:
-
                 out[name[:-1]] = x
-
         flatten(y)
 
         return out
@@ -454,24 +381,17 @@ class quickbooks():
         Files will be named based on the JSON property
         """
 
-        data = {}
         data = self.data
 
         for i in data:
-
             if type(data[i]) != dict and type(data[i]) != list:
-
                 temp = {
                     i: data[i]
                 }
                 temp = [temp]
-
             else:
-
                 temp = self.flatten_json(data[i])
-
                 if type(temp) == dict:
-
                     temp = [temp]
 
             temp_df = pd.DataFrame(temp)

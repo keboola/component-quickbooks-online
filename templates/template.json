@@ -1,0 +1,17 @@
+{
+    "name": "Basic",
+    "description": "Basic template",
+    "debug": true,
+    "outputBucket": "quickbooks",
+    "jobs": [
+        {
+            "endpoint": "query",
+            "params": {
+                "query": {
+                    "attr": "query"
+                }
+            },
+            "dataField": "QueryResponse"
+        }
+    ]
+}

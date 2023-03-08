@@ -1,0 +1,2982 @@
+{
+    "Account": {
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "SubAccount": {
+            "type": "column",
+            "mapping": {
+                "destination": "SubAccount"
+            }
+        },
+        "FullyQualifiedName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FullyQualifiedName"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Classification": {
+            "type": "column",
+            "mapping": {
+                "destination": "Classification"
+            }
+        },
+        "AccountType": {
+            "type": "column",
+            "mapping": {
+                "destination": "AccountType"
+            }
+        },
+        "AccountSubType": {
+            "type": "column",
+            "mapping": {
+                "destination": "AccountSubType"
+            }
+        },
+        "CurrentBalance": {
+            "type": "column",
+            "mapping": {
+                "destination": "CurrentBalance"
+            }
+        },
+        "CurrentBalanceWithSubAccounts": {
+            "type": "column",
+            "mapping": {
+                "destination": "CurrentBalanceWithSubAccounts"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "TaxCodeRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "TaxCode"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        }
+    },
+    "Bill": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "SalesTermRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "SalesTerm"
+            }
+        },
+        "DueDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "DueDate"
+            }
+        },
+        "Balance": {
+            "type": "column",
+            "mapping": {
+                "destination": "Balance"
+            }
+        },
+        "HomeBalance": {
+            "type": "column",
+            "mapping": {
+                "destination": "HomeBalance"
+            }
+        },
+        "DocNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "DocNumber"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "LinkedTxn": {
+            "type": "table",
+            "destination": "Bill-LinkedTxn",
+            "tableMapping": {
+                "TxnId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnID",
+                        "primaryKey": true
+                    }
+                },
+                "TxnType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnType"
+                    }
+                }
+            }
+        },
+        "VendorRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_ID"
+            }
+        },
+        "VendorRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_name"
+            }
+        },
+        "APAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "APAccount_ID"
+            }
+        },
+        "APAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "APAccount_name"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmount"
+            }
+        },
+        "GlobalTaxCalculation": {
+            "type": "column",
+            "mapping": {
+                "destination": "GlobalTaxCalculation"
+            }
+        },
+        "TxnTaxDetail": {
+            "type": "table",
+            "destination": "Bill-TxnTaxDetail",
+            "tableMapping": {
+                "TotalTax": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TotalTax"
+                    }
+                },
+                "TaxLine": {
+                    "type": "table",
+                    "destination": "Bill-TxnTaxDetail-TaxLine",
+                    "tableMapping": {
+                        "Amount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Amount"
+                            }
+                        },
+                        "DetailType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "DetailType"
+                            }
+                        },
+                        "TaxLineDetail.TaxRateRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxRate_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "TaxLineDetail.TaxPercent": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxPercent"
+                            }
+                        },
+                        "TaxLineDetail.NetAmountTaxable": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "NetAmountTaxable"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "Bill-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "AccountBasedExpenseLineDetail": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.AccountRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_Account_ID"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.AccountRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_Account_name"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.CustomerRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_Customer_ID"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.CustomerRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_Customer_name"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.BillableStatus": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_Billable_Status"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.TaxAmount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_TaxAmount"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.TaxCodeRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_TaxCode_ID"
+                    }
+                },
+                "AccountBasedExpenseLineDetail.TaxInclusiveAmt": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "AccountBasedExpenseLineDetail_TaxInclusiveAmount"
+                    }
+                },
+                "ItemBasedExpenseLineDetail": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.ItemRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Item_ID"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.ItemRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Item_name"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.UnitPrice": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_UnitPrice"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.Qty": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Qty"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.TaxCodeRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_TaxCode_ID"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.CustomerRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Customer_ID"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.CustomerRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Customer_name"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.BillableStatus": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_Billable_Status"
+                    }
+                },
+                "ItemBasedExpenseLineDetail.TaxInclusiveAmt": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ItemBasedExpenseLineDetail_TaxInclusiveAmount"
+                    }
+                }
+            }
+        }
+    },
+    "BillPayment": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "VendorRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_ID"
+            }
+        },
+        "VendorRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_name"
+            }
+        },
+        "PayType": {
+            "type": "column",
+            "mapping": {
+                "destination": "PayType"
+            }
+        },
+        "CheckPayment.BankAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "CheckPayment_BankAccountID"
+            }
+        },
+        "CheckPayment.BankAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "CheckPayment_BankAccountName"
+            }
+        },
+        "CheckPayment.PrintStatus": {
+            "type": "column",
+            "mapping": {
+                "destination": "CheckPayment_PrintStatus"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmt"
+            }
+        },
+        "domain": {
+            "type": "column",
+            "mapping": {
+                "destination": "domain"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "DocNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "DocNumber"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "BillPayment-Line",
+            "tableMapping": {
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "LinkedTxn": {
+                    "type": "table",
+                    "destination": "BillPayment-Line-LinkedTxn",
+                    "tableMapping": {
+                        "TxnId": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TxnId"
+                            }
+                        },
+                        "TxnType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TxnType"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Budget": {
+        "StartDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "StartDate"
+            }
+        },
+        "BudgetEntryType": {
+            "type": "column",
+            "mapping": {
+                "destination": "BudgetEntryType"
+            }
+        },
+        "EndDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "EndDate"
+            }
+        },
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "BudgetType": {
+            "type": "column",
+            "mapping": {
+                "destination": "BudgetType"
+            }
+        },
+        "SyncToken": {
+            "type": "column",
+            "mapping": {
+                "destination": "SyncToken"
+            }
+        },
+        "domain": {
+            "type": "column",
+            "mapping": {
+                "destination": "domain"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "BudgetDetail": {
+            "type": "table",
+            "destination": "BudgetDetail",
+            "tableMapping": {
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "AccountRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Account_Name"
+                    }
+                },
+                "AccountRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Account_ID",
+                        "primaryKey": true
+                    }
+                },
+                "BudgetDate": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "BudgetDate"
+                    }
+                },
+                "ClassRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Class_Name"
+                    }
+                },
+                "ClassRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Class_ID"
+                    }
+                }
+            }
+        }
+    },
+    "Class": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "SubClass": {
+            "type": "column",
+            "mapping": {
+                "destination": "SubClass"
+            }
+        },
+        "FullyQualifiedName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FullyQualifiedName"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "SyncToken": {
+            "type": "column",
+            "mapping": {
+                "destination": "SyncToken"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        }
+    },
+    "Customer": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "GivenName": {
+            "type": "column",
+            "mapping": {
+                "destination": "GivenName"
+            }
+        },
+        "FamilyName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FamilyName"
+            }
+        },
+        "FullQualifiedName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FullQualifiedName"
+            }
+        },
+        "CompanyName": {
+            "type": "column",
+            "mapping": {
+                "destination": "CompanyName"
+            }
+        },
+        "DisplayName": {
+            "type": "column",
+            "mapping": {
+                "destination": "DisplayName"
+            }
+        },
+        "PrintOnCheckName": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrintOnCheckName"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Notes": {
+            "type": "column",
+            "mapping": {
+                "destination": "Notes"
+            }
+        },
+        "PrimaryPhone.FreeFormNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrimaryPhone"
+            }
+        },
+        "PrimaryEmailAddr.Address": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrimaryEmail"
+            }
+        },
+        "BillAddr": {
+            "type": "table",
+            "destination": "Customer-BillAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "BillAddr_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line_1"
+                    }
+                },
+                "City": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "City"
+                    }
+                },
+                "CountrySubDivisionCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "State"
+                    }
+                },
+                "Lat": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Latitude"
+                    }
+                },
+                "Long": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Longitude"
+                    }
+                }
+            }
+        },
+        "ShipAddr": {
+            "type": "table",
+            "destination": "Customer-ShipAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ShipAddr_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line_1"
+                    }
+                },
+                "City": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "City"
+                    }
+                },
+                "CountrySubDivisionCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "State"
+                    }
+                },
+                "Lat": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Latitude"
+                    }
+                },
+                "Long": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Longitude"
+                    }
+                }
+            }
+        },
+        "Taxable": {
+            "type": "column",
+            "mapping": {
+                "destination": "Taxable"
+            }
+        },
+        "Job": {
+            "type": "column",
+            "mapping": {
+                "destination": "Job"
+            }
+        },
+        "BillWithParent": {
+            "type": "column",
+            "mapping": {
+                "destination": "BillWithParent"
+            }
+        },
+        "Balance": {
+            "type": "column",
+            "mapping": {
+                "destination": "Balance"
+            }
+        },
+        "BalanceWithJobs": {
+            "type": "column",
+            "mapping": {
+                "destination": "BalanceWithJobs"
+            }
+        },
+        "SalesTermRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "SalesTerm"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "PreferredDeliveryMethod": {
+            "type": "column",
+            "mapping": {
+                "destination": "PreferredDeliveryMethod"
+            }
+        },
+        "ParentRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "ParentID"
+            }
+        }
+    },
+    "Deposit": {
+        "DepositToAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "DepositToAccount_ID"
+            }
+        },
+        "DepositToAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "DepositToAccount_name"
+            }
+        },
+        "GlobalTaxCalculation": {
+            "type": "column",
+            "mapping": {
+                "destination": "GlobalTaxCalculation"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmt"
+            }
+        },
+        "HomeTotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "HomeTotalAmt"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "PrivateNote": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrivateNote"
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "Deposit-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "LineNum": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "LineNum"
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "DepositLineDetail.AccountRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DepositLineDetail_Account_ID"
+                    }
+                },
+                "DepositLineDetail.AccountRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DepositLineDetail_Account_Name"
+                    }
+                },
+                "DepositLineDetail.TaxCodeRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxCode"
+                    }
+                },
+                "DepositLineDetail.TaxApplicableOn": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxApplicableOn"
+                    }
+                }
+            }
+        },
+        "TxnTaxDetail.TotalTax": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalTax"
+            }
+        },
+        "TxnTaxDetail.TaxLine": {
+            "type": "table",
+            "destination": "Deposit-TaxLine",
+            "tableMapping": {
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "TaxLineDetail.TaxRateRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxRate_ID"
+                    }
+                },
+                "TaxLineDetail.PercentBased": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "PercentBased"
+                    }
+                },
+                "TaxLineDetail.TaxPercent": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxPercent"
+                    }
+                },
+                "TaxLineDetail.NetAmountTaxable": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "NetAmountTaxable"
+                    }
+                }
+            }
+        }
+    },
+    "Invoice": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "CustomerRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Customer_ID"
+            }
+        },
+        "CustomerRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Customer_name"
+            }
+        },
+        "DocNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "DocNumber"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "LinkedTxn": {
+            "type": "table",
+            "destination": "Invoice-LinkedTxn",
+            "tableMapping": {
+                "TxnId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnID",
+                        "primaryKey": true
+                    }
+                },
+                "TxnType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnType"
+                    }
+                }
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "SalesTermRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "SalesTerm"
+            }
+        },
+        "DueDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "DueDate"
+            }
+        },
+        "GlobalTaxCalculation": {
+            "type": "column",
+            "mapping": {
+                "destination": "GlobalTaxCalculation"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmount"
+            }
+        },
+        "HomeTotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "HomeTotalAmount"
+            }
+        },
+        "PrintStatus": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrintStatus"
+            }
+        },
+        "EmailStatus": {
+            "type": "column",
+            "mapping": {
+                "destination": "EmailStatus"
+            }
+        },
+        "BillEmail.Address": {
+            "type": "column",
+            "mapping": {
+                "destination": "BillEmail_Address"
+            }
+        },
+        "Balance": {
+            "type": "column",
+            "mapping": {
+                "destination": "Balance"
+            }
+        },
+        "HomeBalance": {
+            "type": "column",
+            "mapping": {
+                "destination": "HomeBalance"
+            }
+        },
+        "DeliveryInfo.DeliveryType": {
+            "type": "column",
+            "mapping": {
+                "destination": "DeliveryType"
+            }
+        },
+        "DeliveryInfo.DeliveryTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "DeliveryTime"
+            }
+        },
+        "BillAddr": {
+            "type": "table",
+            "destination": "Invoice-BillAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "BillAddr_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line_1"
+                    }
+                },
+                "City": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "City"
+                    }
+                },
+                "CountrySubDivisionCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "State"
+                    }
+                }
+            }
+        },
+        "ShipAddr": {
+            "type": "table",
+            "destination": "Invoice-ShipAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ShipAddr_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line_1"
+                    }
+                },
+                "City": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "City"
+                    }
+                },
+                "CountrySubDivisionCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "State"
+                    }
+                },
+                "Lat": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Latitude"
+                    }
+                },
+                "Long": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Longitude"
+                    }
+                }
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "Invoice-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "LineNum": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "LineNum"
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "SalesItemLineDetail.ServiceDate": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ServiceDate"
+                    }
+                },
+                "SalesItemLineDetail.ItemRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "SalesItem_ID"
+                    }
+                },
+                "SalesItemLineDetail.ItemRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "SalesItem_name"
+                    }
+                },
+                "SalesItemLineDetail.ClassRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Class_ID"
+                    }
+                },
+                "SalesItemLineDetail.ClassRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Class_name"
+                    }
+                },
+                "SalesItemLineDetail.UnitPrice": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "UnitPrice"
+                    }
+                },
+                "SalesItemLineDetail.Qty": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Qty"
+                    }
+                },
+                "SalesItemLineDetail.TaxCodeRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxCode"
+                    }
+                }
+            }
+        },
+        "TxnTaxDetail": {
+            "type": "table",
+            "destination": "Invoice-TxnTaxDetail",
+            "tableMapping": {
+                "TotalTax": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TotalTax"
+                    }
+                },
+                "TaxLine": {
+                    "type": "table",
+                    "destination": "Invoice-TxnTaxDetail-TaxLine",
+                    "tableMapping": {
+                        "Amount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Amount"
+                            }
+                        },
+                        "DetailType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "DetailType"
+                            }
+                        },
+                        "TaxLineDetail.TaxRateRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxRate_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "TaxLineDetail.TaxPercent": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxPercent"
+                            }
+                        },
+                        "TaxLineDetail.NetAmountTaxable": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "NetAmountTaxable"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Item": {
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "FullyQualifiedName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FullyQualitiedName"
+            }
+        },
+        "Taxble": {
+            "type": "column",
+            "mapping": {
+                "destination": "Taxable"
+            }
+        },
+        "SalesTaxIncluded": {
+            "type": "column",
+            "mapping": {
+                "destination": "SalestaxIncluded"
+            }
+        },
+        "UnitPrice": {
+            "type": "column",
+            "mapping": {
+                "destination": "UnitPrice"
+            }
+        },
+        "Type": {
+            "type": "column",
+            "mapping": {
+                "destination": "Type"
+            }
+        },
+        "IncomeAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "IncomeAccountRef_id"
+            }
+        },
+        "IncomeAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "IncomeAccountRef_name"
+            }
+        },
+        "PurchaseTaxIncluded": {
+            "type": "column",
+            "mapping": {
+                "destination": "PurchaseTaxIncluded"
+            }
+        },
+        "PurchaseCost": {
+            "type": "column",
+            "mapping": {
+                "destination": "PurchaseCost"
+            }
+        },
+        "TrackQtyOnHand": {
+            "type": "column",
+            "mapping": {
+                "destination": "TrackQtyOnHand"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        }
+    },
+    "JournalEntry": {
+        "Adjustment": {
+            "type": "column",
+            "mapping": {
+                "destination": "Adjustment"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "DocNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "DocNumber"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmt"
+            }
+        },
+        "HomeTotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "HomeTotalAmt"
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "JournalEntry-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "JournalEntryLineDetail": {
+                    "type": "table",
+                    "destination": "JournalEntry-Line-Detail",
+                    "tableMapping": {
+                        "PostingType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "PostingType"
+                            }
+                        },
+                        "AccountRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_ID"
+                            }
+                        },
+                        "AccountRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_name"
+                            }
+                        },
+                        "Entity.Type": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Entity_type"
+                            }
+                        },
+                        "Entity.EntityRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Entity_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "Entity.EntityRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Entity_name"
+                            }
+                        },
+                        "ClassRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Class_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "ClassRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Class_name"
+                            }
+                        },
+                        "DepartmentRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Deparement_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "DepartmentRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Department_name"
+                            }
+                        },
+                        "TaxCodeRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxCode_id"
+                            }
+                        },
+                        "TaxCodeRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxCode_name"
+                            }
+                        },
+                        "TaxApplicableOn": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxApplicableOn"
+                            }
+                        },
+                        "TaxAmount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxAmount"
+                            }
+                        },
+                        "BillableStatus": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "BillableStatus"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TxnTaxDetail": {
+            "type": "table",
+            "destination": "JournalEntry-TxnTaxDetail",
+            "tableMapping": {
+                "TxnTaxCodeRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxCode_ID",
+                        "primaryKey": true
+                    }
+                },
+                "TxnTaxCodeRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxCode_name"
+                    }
+                },
+                "TotalTax": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TotalTax"
+                    }
+                },
+                "TaxLine": {
+                    "type": "table",
+                    "destination": "JournalEntry-TxnTaxDetai-TaxLine",
+                    "tableMapping": {
+                        "Amount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Amount"
+                            }
+                        },
+                        "DetailType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "DetailType"
+                            }
+                        },
+                        "TaxLineDetail.NetAmountTaxable": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "NetAmountTaxable"
+                            }
+                        },
+                        "TaxlineDetail.TaxInclusiveAmount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxInclusiveAmount"
+                            }
+                        },
+                        "TaxlineDetail.TaxPercent": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxPercent"
+                            }
+                        },
+                        "TaxLineDetail.TaxRateRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxRate_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "TaxLineDetail.TaxRateRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxRate_name"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Payment": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "CustomerRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Customer_ID"
+            }
+        },
+        "CustomerRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Customer_name"
+            }
+        },
+        "DepositToAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "DepositToAccount"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmt"
+            }
+        },
+        "UnappliedAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "UnappliedAmt"
+            }
+        },
+        "ProcessPayment": {
+            "type": "column",
+            "mapping": {
+                "destination": "ProcessPayment"
+            }
+        },
+        "domain": {
+            "type": "column",
+            "mapping": {
+                "destination": "domain"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "SyncToken": {
+            "type": "column",
+            "mapping": {
+                "destination": "SyncToken"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "Payment-Line",
+            "tableMapping": {
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "LinkedTxn": {
+                    "type": "table",
+                    "destination": "Payment-Line-LinkedTxn",
+                    "tableMapping": {
+                        "TxnId": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TxnId",
+                                "primaryKey": true
+                            }
+                        },
+                        "TxnType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TxnType"
+                            }
+                        }
+                    }
+                },
+                "LineEx.any": {
+                    "type": "table",
+                    "destination": "Payment-Line-LineExAny",
+                    "tableMapping": {
+                        "name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "name"
+                            }
+                        },
+                        "declaredType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "declaredType"
+                            }
+                        },
+                        "scope": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "scope"
+                            }
+                        },
+                        "value.Name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "value_name"
+                            }
+                        },
+                        "value.Value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "value_value"
+                            }
+                        },
+                        "nil": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "nil"
+                            }
+                        },
+                        "globalScope": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "globalScope"
+                            }
+                        },
+                        "typeSubstituted": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "typeSubstituted"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "Purchase": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "AccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Account_ID"
+            }
+        },
+        "AccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Account_name"
+            }
+        },
+        "PaymentType": {
+            "type": "column",
+            "mapping": {
+                "destination": "PaymentType"
+            }
+        },
+        "Credit": {
+            "type": "column",
+            "mapping": {
+                "destination": "Credit"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmt"
+            }
+        },
+        "GlobalTaxCalculation": {
+            "type": "column",
+            "mapping": {
+                "destination": "GlobalTaxCalculation"
+            }
+        },
+        "PurchaseEx.any": {
+            "type": "table",
+            "destination": "Purchase-PurchaseExAny",
+            "tableMapping": {
+                "name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "name"
+                    }
+                },
+                "declaredType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "declaredType"
+                    }
+                },
+                "scope": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "scope"
+                    }
+                },
+                "value.Name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "value_name"
+                    }
+                },
+                "value.Value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "value_value"
+                    }
+                },
+                "nil": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "nil"
+                    }
+                },
+                "globalScope": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "globalScope"
+                    }
+                },
+                "typeSubstituted": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "typeSubstituted"
+                    }
+                }
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "PrivateNote": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrivateNote"
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "Purchase-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID"
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "AccountBasedExpenseLineDetail": {
+                    "type": "table",
+                    "destination": "Purchase-Line-AccountBasedExpenseLineDetail",
+                    "tableMapping": {
+                        "AccountRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_ID"
+                            }
+                        },
+                        "AccountRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_name"
+                            }
+                        },
+                        "BillableStatus": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "BillableStatus"
+                            }
+                        },
+                        "TaxCodeRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxCodeRef"
+                            }
+                        },
+                        "TaxInclusiveAmt": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxInclusiveAmt"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "TxnTaxDetail": {
+            "type": "table",
+            "destination": "Purchase-TxnTaxDetail",
+            "tableMapping": {
+                "TotalTax": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TotalTax"
+                    }
+                },
+                "TaxLine": {
+                    "type": "table",
+                    "destination": "Purchase-TxnTaxDetail-TaxLine",
+                    "tableMapping": {
+                        "Amount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Amount"
+                            }
+                        },
+                        "DetailType": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "DetailType"
+                            }
+                        },
+                        "TaxLineDetail.TaxRateRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxRateRef"
+                            }
+                        },
+                        "TaxLineDetail.PercentBased": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "PercentBased"
+                            }
+                        },
+                        "TaxLineDetail.TaxPercent": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxPercent"
+                            }
+                        },
+                        "TaxLineDetail.NetAmountTaxable": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "NetAmountTaxable"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "PurchaseOrder": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "POStatus": {
+            "type": "column",
+            "mapping": {
+                "destination": "POStatus"
+            }
+        },
+        "DocNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "DocNumber"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "VendorRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_ID"
+            }
+        },
+        "VendorRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor_name"
+            }
+        },
+        "APAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "APAccount_ID"
+            }
+        },
+        "APAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "APAccount_name"
+            }
+        },
+        "TotalAmt": {
+            "type": "column",
+            "mapping": {
+                "destination": "TotalAmount"
+            }
+        },
+        "VendorAddr": {
+            "type": "table",
+            "destination": "PurchaseOrder-VendorAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line1"
+                    }
+                },
+                "Line2": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line2"
+                    }
+                },
+                "Line3": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line3"
+                    }
+                },
+                "Line4": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line4"
+                    }
+                }
+            }
+        },
+        "ShipAddr": {
+            "type": "table",
+            "destination": "PurchaseOrder-ShipAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line1"
+                    }
+                },
+                "Line2": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line2"
+                    }
+                },
+                "Line3": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line3"
+                    }
+                },
+                "Line4": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line4"
+                    }
+                }
+            }
+        },
+        "CustomField": {
+            "type": "table",
+            "destination": "PurchaseOrder-CustomField",
+            "tableMapping": {
+                "DefinitionId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Definition_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Name"
+                    }
+                },
+                "Type": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Type"
+                    }
+                },
+                "StringValue": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "StringValue"
+                    }
+                }
+            }
+        },
+        "Line": {
+            "type": "table",
+            "destination": "PurchaseOrder-Line",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Description": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Description"
+                    }
+                },
+                "Amount": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Amount"
+                    }
+                },
+                "DetailType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "DetailType"
+                    }
+                },
+                "AccountBasedExpenseLineDetail": {
+                    "type": "table",
+                    "destination": "PurchaseOrder-AccountBasedExpenseLineDetail",
+                    "tableMapping": {
+                        "AccountRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "AccountRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Account_name"
+                            }
+                        },
+                        "CustomerRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Customer_ID"
+                            }
+                        },
+                        "CustomerRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Customer_name"
+                            }
+                        },
+                        "BillableStatus": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Billable_Status"
+                            }
+                        },
+                        "TaxAmount": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxAmount"
+                            }
+                        },
+                        "TaxCodeRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxCode_ID"
+                            }
+                        },
+                        "TaxInclusiveAmt": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxInclusiveAmount"
+                            }
+                        }
+                    }
+                },
+                "ItemBasedExpenseLineDetail": {
+                    "type": "table",
+                    "destination": "PurchaseOrder-ItemBasedExpenseLineDetail",
+                    "tableMapping": {
+                        "ItemRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Item_ID",
+                                "primaryKey": true
+                            }
+                        },
+                        "ItemRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Item_name"
+                            }
+                        },
+                        "ClassRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "ClassRef_ID"
+                            }
+                        },
+                        "ClassRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "ClassRef_name"
+                            }
+                        },
+                        "UnitPrice": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "UnitPrice"
+                            }
+                        },
+                        "Qty": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Qty"
+                            }
+                        },
+                        "TaxCodeRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxCode_ID"
+                            }
+                        },
+                        "CustomerRef.value": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Customer_ID"
+                            }
+                        },
+                        "CustomerRef.name": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Customer_name"
+                            }
+                        },
+                        "BillableStatus": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "Billable_Status"
+                            }
+                        },
+                        "TaxInclusiveAmt": {
+                            "type": "column",
+                            "mapping": {
+                                "destination": "TaxInclusiveAmount"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "LinkedTxn": {
+            "type": "table",
+            "destination": "PurchaseOrder-LinkedTxn",
+            "tableMapping": {
+                "TxnId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnId"
+                    }
+                },
+                "TxnType": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnType"
+                    }
+                },
+                "TxnLineId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TxnLineId"
+                    },
+                    "forceType": true
+                }
+            }
+        },
+        "DueDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "DueDate"
+            }
+        },
+        "ClassRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Class_ID"
+            }
+        },
+        "ClassRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Class_name"
+            }
+        }
+    },
+    "TaxCode": {
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "Description": {
+            "type": "column",
+            "mapping": {
+                "destination": "Description"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Taxable": {
+            "type": "column",
+            "mapping": {
+                "destination": "Taxable"
+            }
+        },
+        "TaxGroup": {
+            "type": "column",
+            "mapping": {
+                "destination": "TaxGroup"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "PurchaseTaxRateList.TaxRateDetail": {
+            "type": "table",
+            "destination": "TaxCode-PurchaseTaxRateList",
+            "tableMapping": {
+                "TaxRateRef.value": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxRate_ID",
+                        "primaryKey": true
+                    }
+                },
+                "TaxRateRef.name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxRate_name"
+                    }
+                },
+                "TaxTypeApplicable": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxTypeApplicable"
+                    }
+                },
+                "TaxOrder": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "TaxOrder"
+                    }
+                }
+            }
+        }
+    },
+    "TaxRate": {
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "Description": {
+            "type": "column",
+            "mapping": {
+                "destination": "Description"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "RateValue": {
+            "type": "column",
+            "mapping": {
+                "destination": "RateValue"
+            }
+        },
+        "AgencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "AgencyRef_ID"
+            }
+        },
+        "SpecialTaxType": {
+            "type": "column",
+            "mapping": {
+                "destination": "SpecialTaxType"
+            }
+        },
+        "DisplayType": {
+            "type": "column",
+            "mapping": {
+                "destination": "DisplayType"
+            }
+        },
+        "domain": {
+            "type": "column",
+            "mapping": {
+                "destination": "domain"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "SyncToken": {
+            "type": "column",
+            "mapping": {
+                "destination": "SyncToken"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        }
+    },
+    "Term": {
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Type": {
+            "type": "column",
+            "mapping": {
+                "destination": "Type"
+            }
+        },
+        "DueDays": {
+            "type": "column",
+            "mapping": {
+                "destination": "DueDays"
+            }
+        },
+        "DiscountDays": {
+            "type": "column",
+            "mapping": {
+                "destination": "DiscountDays"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        }
+    },
+    "Transfer": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "FromAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "FromAccount_ID"
+            }
+        },
+        "FromAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "FromAccount_name"
+            }
+        },
+        "ToAccountRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "ToAccount_ID"
+            }
+        },
+        "ToAccountRef.name": {
+            "type": "column",
+            "mapping": {
+                "destination": "ToAccount_name"
+            }
+        },
+        "Amount": {
+            "type": "column",
+            "mapping": {
+                "destination": "Amount"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        },
+        "TxnDate": {
+            "type": "column",
+            "mapping": {
+                "destination": "TxnDate"
+            }
+        },
+        "CurrencyRef.value": {
+            "type": "column",
+            "mapping": {
+                "destination": "Currency"
+            }
+        },
+        "ExchangeRate": {
+            "type": "column",
+            "mapping": {
+                "destination": "ExchangeRate"
+            }
+        },
+        "PrivateNote": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrivateNote"
+            }
+        }
+    },
+    "Vendor": {
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "ID",
+                "primaryKey": true
+            }
+        },
+        "AcctNum": {
+            "type": "column",
+            "mapping": {
+                "destination": "AcctNum"
+            }
+        },
+        "GivenName": {
+            "type": "column",
+            "mapping": {
+                "destination": "GivenName"
+            }
+        },
+        "FamilyName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FamilyName"
+            }
+        },
+        "CompanyName": {
+            "type": "column",
+            "mapping": {
+                "destination": "CompanyName"
+            }
+        },
+        "DisplayName": {
+            "type": "column",
+            "mapping": {
+                "destination": "DisplayName"
+            }
+        },
+        "PrintOnCheckName": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrintOnCheckName"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Vendor1099": {
+            "type": "column",
+            "mapping": {
+                "destination": "Vendor1099"
+            }
+        },
+        "PrimaryPhone.FreeForNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrimaryPhone"
+            }
+        },
+        "AlternatePhone.FreeForNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "AlternatePhone"
+            }
+        },
+        "Mobile.FreeForNumber": {
+            "type": "column",
+            "mapping": {
+                "destination": "Mobile"
+            }
+        },
+        "PrimaryEmailAddr.Address": {
+            "type": "column",
+            "mapping": {
+                "destination": "PrimaryEmailAddress"
+            }
+        },
+        "WebAddr.URI": {
+            "type": "column",
+            "mapping": {
+                "destination": "WebAddress"
+            }
+        },
+        "BillAddr": {
+            "type": "table",
+            "destination": "Vendor-BillAddr",
+            "tableMapping": {
+                "Id": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "ID",
+                        "primaryKey": true
+                    }
+                },
+                "Line1": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Line1"
+                    }
+                },
+                "City": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "City"
+                    }
+                },
+                "CountrySubDivisionCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Province"
+                    }
+                },
+                "PostalCode": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "PostalCode"
+                    }
+                }
+            }
+        }
+    }
+}

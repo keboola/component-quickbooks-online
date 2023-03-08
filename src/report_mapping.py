@@ -4,6 +4,7 @@ import csv
 import json
 import pandas as pd
 import copy
+
 "__author__ = 'Leo Chan'"
 "__credits__ = 'Keboola 2017'"
 "__project__ = 'kbc_quickbooks'"
@@ -17,7 +18,7 @@ DEFAULT_FILE_INPUT = "/data/in/tables/"
 DEFAULT_FILE_DESTINATION = "/data/out/tables/"
 
 
-class report_mapping():
+class report_mapping:
     """
     Parser dedicated for Report endpoint
     """
@@ -69,7 +70,6 @@ class report_mapping():
         else:  # Outputting tables which cannot parse
 
             for item in self.columns:
-
                 self.data_out.append(self.header[item])
 
             (self.data_out).append("{0}".format(json.dumps(data)))
@@ -105,7 +105,7 @@ class report_mapping():
         Arrange the column headers in order
         """
 
-        if columns.index("value") != (len(columns)-1):
+        if columns.index("value") != (len(columns) - 1):
             # If "value" is not at the end of the row index
             columns.remove('value')
 
@@ -132,13 +132,12 @@ class report_mapping():
             if ("type" not in i) and ("group" in i):
 
                 if row_name not in self.columns:
-
                     self.columns.append(row_name)
                     self.primary_key.append(row_name)
 
                 temp_out = []
                 row[row_name] = i["group"]
-                row["Col_{0}".format(itr+1)] = i["ColData"][0]["value"]
+                row["Col_{0}".format(itr + 1)] = i["ColData"][0]["value"]
                 row["value"] = i["ColData"][1]["value"]
                 temp_out = [row]
                 data_out = data_out + temp_out
@@ -146,7 +145,6 @@ class report_mapping():
             elif i["type"] == "Section":
 
                 if row_name not in self.columns:
-
                     self.columns.append(row_name)
                     self.primary_key.append(row_name)
 
@@ -155,7 +153,7 @@ class report_mapping():
 
                     row[row_name] = i["Header"]["ColData"][0]["value"]
                     # Recursion when type data is not found
-                    temp_out = self.parse(i["Rows"]["Row"], row, itr+1)
+                    temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 
                 elif "group" in i:
 
@@ -164,15 +162,15 @@ class report_mapping():
 
                     # Row value , assuming no more recursion
                     row["Col_{0}".format(
-                        itr+1)] = i["Summary"]["ColData"][0]["value"]
+                        itr + 1)] = i["Summary"]["ColData"][0]["value"]
                     row["value"] = i["Summary"]["ColData"][1]["value"]
                     temp_out = [row]
 
-                    if "Col_{0}".format(itr+1) not in self.columns:
-                        self.columns.append("Col_{0}".format(itr+1))
-                        self.primary_key.append("Col_{0}".format(itr+1))
+                    if "Col_{0}".format(itr + 1) not in self.columns:
+                        self.columns.append("Col_{0}".format(itr + 1))
+                        self.primary_key.append("Col_{0}".format(itr + 1))
 
-                data_out = data_out+temp_out  # Append data back to section
+                data_out = data_out + temp_out  # Append data back to section
 
             elif (i["type"] == "Data") or ("ColData" in i):
 
@@ -199,7 +197,7 @@ class report_mapping():
         Dummy function to return header per file type.
         """
 
-        file = "/data/out/tables/"+str(file_name)+".manifest"
+        file = "/data/out/tables/" + str(file_name) + ".manifest"
         # destination_part = file_name.split(".csv")[0]
 
         manifest_template = {
@@ -218,7 +216,7 @@ class report_mapping():
         manifest["primary_key"] = primary_key
 
         try:
-            
+
             with open(file, 'w') as file_out:
 
                 json.dump(manifest, file_out)
@@ -238,16 +236,15 @@ class report_mapping():
         if self.accounting_type == '':
 
             filename = endpoint + ".csv"
- 
+
         else:
 
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
 
         logging.info("Outputting {0}...".format(filename))
-        temp_df.to_csv(DEFAULT_FILE_DESTINATION+filename,
+        temp_df.to_csv(DEFAULT_FILE_DESTINATION + filename,
                        index=False, columns=self.columns)
         self.produce_manifest(filename, pk)
-
 
     def output_1cell(self, endpoint, columns, data, pk):
         """
@@ -264,7 +261,7 @@ class report_mapping():
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
 
         # if file exist, not outputing column header
-        if os.path.isfile(DEFAULT_FILE_DESTINATION+filename):
+        if os.path.isfile(DEFAULT_FILE_DESTINATION + filename):
 
             data_out = [data]
 
@@ -272,7 +269,7 @@ class report_mapping():
 
             data_out = [columns, data]
 
-        with open(DEFAULT_FILE_DESTINATION+filename, "a") as f:
+        with open(DEFAULT_FILE_DESTINATION + filename, "a") as f:
             writer = csv.writer(f)
             # writer.writerow(["range", "start_date", "end_date", "content"])
             # writer.writerow([date_concat, start_date, end_date, "{0}".format(self.content)])
@@ -283,4 +280,3 @@ class report_mapping():
         logging.info("Outputting {0}... ".format(filename))
         # if not os.path.isfile(DEFAULT_FILE_DESTINATION+filename):
         self.produce_manifest(filename, pk)
-

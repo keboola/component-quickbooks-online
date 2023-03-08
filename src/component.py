@@ -38,8 +38,7 @@ class Component(ComponentBase):
 
     def run(self):
         self.validate_configuration_parameters(REQUIRED_PARAMETERS)
-        p = self.configuration.parameters
-        params = p['config']
+        params = self.configuration.parameters
 
         # Input parameters
         endpoints = params.get(KEY_ENDPOINT)

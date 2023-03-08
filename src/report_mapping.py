@@ -14,8 +14,9 @@ Python 3 environment
 """
 
 # destination to fetch and output files
-DEFAULT_FILE_INPUT = "/data/in/tables/"
-DEFAULT_FILE_DESTINATION = "/data/out/tables/"
+cwd_parent = os.path.dirname(os.getcwd())
+DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")
+DEFAULT_FILE_DESTINATION = os.path.join(cwd_parent, "data/out/tables/")
 
 
 class ReportMapping:
@@ -200,7 +201,7 @@ class ReportMapping:
         Dummy function to return header per file type.
         """
 
-        file = "/data/out/tables/" + str(file_name) + ".manifest"
+        file = DEFAULT_FILE_DESTINATION + str(file_name) + ".manifest"
         # destination_part = file_name.split(".csv")[0]
 
         manifest_template = {
@@ -239,7 +240,9 @@ class ReportMapping:
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
 
         logging.info("Outputting {0}...".format(filename))
-        temp_df.to_csv(DEFAULT_FILE_DESTINATION + filename,
+        file_out_path = DEFAULT_FILE_DESTINATION + filename
+        print(f"Saving file to: {file_out_path}")
+        temp_df.to_csv(file_out_path,
                        index=False, columns=self.columns)
         self.produce_manifest(filename, pk)
 

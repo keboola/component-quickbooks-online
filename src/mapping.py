@@ -3,11 +3,13 @@ import pandas as pd
 import json
 import logging
 import sys  # noqa
+import os
 
 
 # destination to fetch and output files
-DEFAULT_FILE_INPUT = "/data/in/tables/"
-DEFAULT_FILE_DESTINATION = "/data/out/tables/"
+cwd_parent = os.path.dirname(os.getcwd())
+DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")
+DEFAULT_FILE_DESTINATION = os.path.join(cwd_parent, "data/out/tables/")
 
 
 class Mapping:
@@ -35,8 +37,8 @@ class Mapping:
         """
         Selecting the Right Mapping for the specified endpoint
         """
-
-        with open("src/mappings.json", 'r') as f:
+        map_json_path = os.path.join(os.getcwd(), "mappings.json")
+        with open(map_json_path, 'r') as f:
             out = json.load(f)
         f.close()
         return out[endpoint]

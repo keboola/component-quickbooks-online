@@ -143,7 +143,7 @@ class QuickbooksClient:
 
             r = requests.post(url, auth=HTTPBasicAuth(
                 self.app_key, self.app_secret), data=param)
-            results = json.loads(r.text)
+            results = r.json()
 
             # If access token was not fetched
             if "error" in results:
@@ -151,13 +151,9 @@ class QuickbooksClient:
             else:
                 request_success = True
 
-        access_token = results["access_token"]
-        refresh_token = results["refresh_token"]
-        logging.info("Access Token Granted...")
-        # logging.info(access_token)
-
-        self.access_token = access_token
-        self.refresh_token = refresh_token
+        self.access_token = results["access_token"]
+        self.refresh_token = results["refresh_token"]
+        logging.info("Access Token Granted.")
 
         # Monitor if app has requested refresh token yet
         self.access_token_refreshed = True
@@ -184,13 +180,12 @@ class QuickbooksClient:
 
         return total_counts
 
-    def url_encode(self, query):
+    @staticmethod
+    def url_encode(query):
         """
         URL encoded the query parameter
         """
-
         out = url_parse.quote_plus(query)
-
         return out
 
     def _request(self, url):
@@ -221,7 +216,7 @@ class QuickbooksClient:
                     self.refresh_access_token()
                 else:
                     logging.error('Response Headers: {}'.format(data.headers))
-                    raise Exception(data)
+                    raise QuickBooksClientException(data.text)
             else:
                 request_success = True
         return results

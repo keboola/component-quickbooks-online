@@ -18,7 +18,7 @@ DEFAULT_FILE_INPUT = "/data/in/tables/"
 DEFAULT_FILE_DESTINATION = "/data/out/tables/"
 
 
-class report_mapping:
+class ReportMapping:
     """
     Parser dedicated for Report endpoint
     """
@@ -72,12 +72,13 @@ class report_mapping:
             for item in self.columns:
                 self.data_out.append(self.header[item])
 
-            (self.data_out).append("{0}".format(json.dumps(data)))
+            self.data_out.append("{0}".format(json.dumps(data)))
             self.columns.append("value")
             self.output_1cell(self.endpoint, self.columns,
                               self.data_out, self.primary_key)
 
-    def construct_header(self, data):
+    @staticmethod
+    def construct_header(data):
         """
         Constructing the base columns(Headers) for output
         *** Endpoint Report specific ***
@@ -100,7 +101,8 @@ class report_mapping:
 
         return json_out
 
-    def arrange_header(self, columns):
+    @staticmethod
+    def arrange_header(columns):
         """
         Arrange the column headers in order
         """
@@ -192,7 +194,8 @@ class report_mapping:
 
         return data_out
 
-    def produce_manifest(self, file_name, primary_key):
+    @staticmethod
+    def produce_manifest(file_name, primary_key):
         """
         Dummy function to return header per file type.
         """
@@ -216,13 +219,10 @@ class report_mapping:
         manifest["primary_key"] = primary_key
 
         try:
-
             with open(file, 'w') as file_out:
-
                 json.dump(manifest, file_out)
                 logging.info(
                     "Output manifest file ({0}) produced.".format(file_name))
-
         except Exception as e:
             logging.error("Could not produce output file manifest.")
             logging.error(e)
@@ -234,11 +234,8 @@ class report_mapping:
 
         temp_df = pd.DataFrame(data)
         if self.accounting_type == '':
-
             filename = endpoint + ".csv"
-
         else:
-
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
 
         logging.info("Outputting {0}...".format(filename))
@@ -253,20 +250,14 @@ class report_mapping:
 
         # Construct output filename
         if self.accounting_type == '':
-
             filename = endpoint + ".csv"
-
         else:
-
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
 
         # if file exist, not outputing column header
         if os.path.isfile(DEFAULT_FILE_DESTINATION + filename):
-
             data_out = [data]
-
         else:
-
             data_out = [columns, data]
 
         with open(DEFAULT_FILE_DESTINATION + filename, "a") as f:

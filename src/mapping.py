@@ -3,13 +3,6 @@ import pandas as pd
 import json
 import logging
 import sys  # noqa
-"__author__ = 'Leo Chan'"
-"__credits__ = 'Keboola 2017'"
-"__project__ = 'kbc_quickbooks'"
-
-"""
-Python 3 environment
-"""
 
 
 # destination to fetch and output files
@@ -17,21 +10,17 @@ DEFAULT_FILE_INPUT = "/data/in/tables/"
 DEFAULT_FILE_DESTINATION = "/data/out/tables/"
 
 
-class mapping():
+class Mapping:
     """
     Handling Generic Ex Mapping
     """
 
     def __init__(self, endpoint, data):
 
-        # Parameters
         self.endpoint = endpoint
         self.mapping = self.mapping_check(self.endpoint)
-        # self.data = data
-        self.out_file = {}
-        self.out_file[self.endpoint] = []
-        self.out_file_pk = {}  # destination name from mapping
-        self.out_file_pk[self.endpoint] = []
+        self.out_file = {self.endpoint: []}
+        self.out_file_pk = {self.endpoint: []}  # destination name from mapping
         self.out_file_pk_raw = {}  # raw destination name from API output
         self.get_primary_key(endpoint, self.mapping)
         logging.info(self.out_file_pk)
@@ -41,7 +30,8 @@ class mapping():
         self.root_parse(data)
         self.output()
 
-    def mapping_check(self, endpoint):
+    @staticmethod
+    def mapping_check(endpoint):
         """
         Selecting the Right Mapping for the specified endpoint
         """
@@ -65,7 +55,7 @@ class mapping():
 
     def parsing(self, table_name, mapping, data):
         """
-        Outputing data results based on configured mapping
+        Outputting data results based on configured mapping
         """
 
         # If new table property is found,
@@ -75,7 +65,7 @@ class mapping():
 
         row_out = {}  # Storing row output
 
-        # Looping thru the keys of the mapping
+        # Looping through the keys of the mapping
         for column in mapping:
             if mapping[column]["type"] == "column":
                 # Delimit mapping variables
@@ -170,7 +160,7 @@ class mapping():
         """
         Parsing table data
         Determining the type of the sub-table
-        *** Subfunction of parse() ***
+        *** Sub-function of parse() ***
         """
 
         if type(data) == dict:
@@ -213,7 +203,8 @@ class mapping():
                 self.get_primary_key(
                     table_name=mapping[column]["destination"], mapping=mapping[column]["tableMapping"])
 
-    def produce_manifest(self, file_name, primary_key):
+    @staticmethod
+    def produce_manifest(file_name, primary_key):
         """
         Dummy function to return header per file type.
         """

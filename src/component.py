@@ -2,9 +2,9 @@ import logging
 
 from keboola.component.base import ComponentBase
 
-from mapping import mapping
+from mapping import Mapping
 from quickbooks import quickbooks
-from report_mapping import report_mapping  # noqa
+from report_mapping import ReportMapping
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -37,8 +37,7 @@ class Component(ComponentBase):
         super().__init__()
 
     def run(self):
-
-        self.validate_configuration(REQUIRED_PARAMETERS)
+        self.validate_configuration_parameters(REQUIRED_PARAMETERS)
         p = self.configuration.parameters
         params = p['config']
 
@@ -47,7 +46,7 @@ class Component(ComponentBase):
         company_id = params.get(KEY_COMPANY_ID)
         logging.info(f'Company ID: {company_id}')
 
-        # INITALIZING QUICKBOOKS INSTANCES
+        # INITIALIZING QUICKBOOKS INSTANCES
         oauth = self.configuration.oauth_credentials
         quickbooks_param = quickbooks(company_id=company_id, oauth=oauth)
 
@@ -90,22 +89,22 @@ class Component(ComponentBase):
                 if report_api_bool:
 
                     if endpoint == "CustomQuery":
-                        report_mapping(endpoint=endpoint, data=input_data,
-                                       query=endpt["start_date"])
+                        ReportMapping(endpoint=endpoint, data=input_data,
+                                      query=endpt["start_date"])
 
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
                             input_data_2 = quickbooks_param.data_2
 
-                            report_mapping(
+                            ReportMapping(
                                 endpoint=endpoint, data=input_data, accounting_type="accrual")
-                            report_mapping(
+                            ReportMapping(
                                 endpoint=endpoint, data=input_data_2, accounting_type="cash")
 
                         else:
-                            report_mapping(endpoint=endpoint, data=input_data)
+                            ReportMapping(endpoint=endpoint, data=input_data)
                 else:
-                    mapping(endpoint=endpoint, data=input_data)
+                    Mapping(endpoint=endpoint, data=input_data)
 
 
 def flatten_json(y):

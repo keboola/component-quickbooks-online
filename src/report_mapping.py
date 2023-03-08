@@ -248,7 +248,7 @@ class report_mapping:
 
     def output_1cell(self, endpoint, columns, data, pk):
         """
-        Output everything into one cell 
+        Output everything into one cell
         """
 
         # Construct output filename

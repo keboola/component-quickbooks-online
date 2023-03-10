@@ -79,7 +79,7 @@ class QuickbooksClient:
             "TrialBalance"
         ]
 
-    def fetch(self, endpoint, report_api_bool, start_date, end_date):
+    def fetch(self, endpoint, report_api_bool, start_date, end_date, query=""):
         """
         Fetching results for the specified endpoint
         """
@@ -107,11 +107,11 @@ class QuickbooksClient:
         if report_api_bool:
             logging.info("Processing Report: {0}".format(endpoint))
             if self.endpoint == "CustomQuery":
-                if start_date == '':
+                if query == '':
                     raise Exception(
                         "Please enter query for CustomQuery. Exit...")
                 logging.info("Input Custom Query: {0}".format(self.start_date))
-                self.custom_request(self.start_date)
+                self.custom_request(input_query=query)
             else:
                 self.report_request(endpoint, start_date, end_date)
         else:
@@ -144,6 +144,7 @@ class QuickbooksClient:
             r = requests.post(url, auth=HTTPBasicAuth(
                 self.app_key, self.app_secret), data=param)
             results = r.json()
+            print(r.json())
 
             # If access token was not fetched
             if "error" in results:
@@ -207,6 +208,7 @@ class QuickbooksClient:
             logging.info(data.headers)
             try:
                 results = json.loads(data.text)
+                print(results)
             except json.decoder.JSONDecodeError as e:
                 raise QuickBooksClientException(f"Cannot decode response: {data.text}") from e
 

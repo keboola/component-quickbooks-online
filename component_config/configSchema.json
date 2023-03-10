@@ -1,75 +1,78 @@
 {
-    "type": "object",
-    "title": "QuickBooks",
-    "required": [
-        "companyid",
-        "endpoints"
-    ],
-    "properties": {
-        "companyid": {
-            "type": "string",
-            "title": "Company ID",
+  "type": "object",
+  "title": "QuickBooks",
+  "required": [
+    "companyid",
+    "endpoints"
+  ],
+  "properties": {
+    "companyid": {
+      "type": "string",
+      "title": "Company ID",
+      "default": "",
+      "minLength": 1,
+      "description": "Can be found under QuickBooks account's \"Account and Setting\".",
+      "propertyOrder": 1
+    },
+    "endpoints": {
+      "type": "array",
+      "title": "Endpoints",
+      "format": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Account",
+          "BalanceSheet**",
+          "Bill",
+          "BillPayment",
+          "Budget",
+          "CashFlow**",
+          "Class",
+          "ClassPnL",
+          "Customer",
+          "Deposit",
+          "GeneralLedger**",
+          "Invoice",
+          "Item",
+          "JournalEntry",
+          "Payment",
+          "ProfitAndLoss**",
+          "ProfitAndLossDetail**",
+          "Purchase",
+          "PurchaseOrder",
+          "TaxCode",
+          "TaxRate",
+          "Term",
+          "TransactionList**",
+          "Transfer",
+          "TrialBalance**",
+          "Vendor"
+        ]
+      },
+      "uniqueItems": true,
+      "options": {
+        "tags": true
+      },
+      "description": "Can be found under QuickBooks account's \"Account and Setting\".",
+      "propertyOrder": 2
+    },
+      "start_date": {
+          "title": "Start Date",
+            "type":"string",
             "default": "",
-            "minLength": 1,
-            "description": "Can be found under QuickBooks account's \"Account and Setting\".",
-            "propertyOrder": 1
+            "propertyOrder": 3
         },
-        "endpoints": {
-            "type": "array",
-            "format": "table",
-            "title": "Endpoint",
-            "uniqueItems": true,
-            "maxItems": 15,
-            "items":{
-                "type": "object",
-                "title": "Endpoint",
-                "properties": {
-                    "endpoint": {
-                        "type": "string",
-                        "default": "Invoice",
-                        "enum":[
-                            "Account",
-                            "BalanceSheet**",
-                            "Bill",
-                            "BillPayment",
-                            "Budget",
-                            "CashFlow**",
-                            "Class",
-                            "Customer",
-                            "Deposit",
-                            "GeneralLedger**",
-                            "Invoice",
-                            "Item",
-                            "JournalEntry",
-                            "Payment",
-                            "ProfitAndLoss**",
-                            "ProfitAndLossDetail**",
-                            "Purchase",
-                            "PurchaseOrder",
-                            "TaxCode",
-                            "TaxRate",
-                            "Term",
-                            "TransactionList**",
-                            "Transfer",
-                            "TrialBalance**",
-                            "Vendor"
-                        ],
-                        "propertyOrder": 1
-                    },
-                    "start_date": {
-                        "type":"string",
-                        "default": "",
-                        "propertyOrder": 2
-                    },
-                    "end_date": {
-                        "type":"string",
-                        "default":"",
-                        "propertyOrder": 3
-                    }
-                }
-            },
-            "propertyOrder": 2,
-            "description": "For endpoints ending with '**', please enter valid date format in YYYY-MM-DD. Else, component will request report with its default parameter, Fiscal Year to Date. Reports result for CashFlow, GeneralLedger,ProfileAndLossDetail, TransactionList, and TrialBalance will be output in ONE cell. "
-        }
-    }
+        "end_date": {
+            "title": "End date",
+            "type":"string",
+            "default":"",
+            "propertyOrder": 4
+        },
+      "class_name":{
+         "type":"string",
+         "title":"Class Name",
+         "description":"Name of the Class that will be used to get PnL with.",
+         "propertyOrder":5
+      }
+  }
 }

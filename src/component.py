@@ -1,6 +1,7 @@
 import logging
 
 from keboola.component.base import ComponentBase
+from keboola.component.exceptions import UserException
 
 from mapping import Mapping
 from client import QuickbooksClient
@@ -9,6 +10,9 @@ from report_mapping import ReportMapping
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
 KEY_ENDPOINT = 'endpoints'
+KEY_START_DATE = 'start_date'
+KEY_END_DATE = 'end_date'
+KEY_CLASS_NAME = 'class_name'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -35,6 +39,8 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self.end_date = None
+        self.start_date = None
 
     def run(self):
         self.validate_configuration_parameters(REQUIRED_PARAMETERS)
@@ -43,6 +49,12 @@ class Component(ComponentBase):
         # Input parameters
         endpoints = params.get(KEY_ENDPOINT)
         company_id = params.get(KEY_COMPANY_ID)
+        self.start_date = params.get(KEY_START_DATE)
+        self.end_date = params.get(KEY_END_DATE)
+        if params.get(KEY_CLASS_NAME, {}):
+            class_name = params.get(KEY_CLASS_NAME)
+        else:
+            class_name = ""
         logging.info(f'Company ID: {company_id}')
 
         # INITIALIZING QUICKBOOKS INSTANCES
@@ -50,13 +62,18 @@ class Component(ComponentBase):
         quickbooks_param = QuickbooksClient(company_id=company_id, oauth=oauth)
 
         # Fetching reports for each configured endpoint
-        for endpt in endpoints:
+        for endpoint in endpoints:
             # Endpoint parameters
-            if "**" in endpt["endpoint"]:
-                endpoint = endpt["endpoint"].split("**")[0]
+
+            if endpoint == "ClassPnL":
+                self.process_pnl_report(class_name=class_name, quickbooks_param=quickbooks_param)
+                continue
+
+            if "**" in endpoint:
+                endpoint = endpoint.split("**")[0]
                 report_api_bool = True
             else:
-                endpoint = endpt["endpoint"]
+                endpoint = endpoint
                 report_api_bool = False
 
             # Phase 1: Request
@@ -64,8 +81,8 @@ class Component(ComponentBase):
             quickbooks_param.fetch(
                 endpoint=endpoint,
                 report_api_bool=report_api_bool,
-                start_date=endpt["start_date"],
-                end_date=endpt["end_date"]
+                start_date=self.start_date,
+                end_date=self.end_date
             )
 
             # Phase 2: Mapping
@@ -89,7 +106,7 @@ class Component(ComponentBase):
 
                     if endpoint == "CustomQuery":
                         ReportMapping(endpoint=endpoint, data=input_data,
-                                      query=endpt["start_date"])
+                                      query=self.start_date)
 
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
@@ -104,6 +121,18 @@ class Component(ComponentBase):
                             ReportMapping(endpoint=endpoint, data=input_data)
                 else:
                     Mapping(endpoint=endpoint, data=input_data)
+
+    def process_pnl_report(self, quickbooks_param, class_name):
+        if not class_name:
+            raise UserException("Cannot fetch PnLClass report, reason: class_name param not specified.")
+
+        quickbooks_param.fetch(
+            endpoint="CustomQuery",
+            report_api_bool=True,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            query="select  * from Class"
+        )
 
 
 def flatten_json(y):

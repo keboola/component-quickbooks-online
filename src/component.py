@@ -160,17 +160,17 @@ class Component(ComponentBase):
             endpoint="ProfitAndLoss", data=quickbooks_param.data, accounting_type="accrual")
 
         out_file_path = os.path.join(self.tables_out_path, "ClassPnL.csv")
-        print(out_file_path)
 
         columns = quickbooks_param.data['Columns']['Column']
         rows = quickbooks_param.data['Rows']['Row']
+
+        exit()
 
         for column in columns:
             print(column["ColTitle"])
         for row in rows:
             print(row)
 
-        exit()
 
 
 def flatten_json(y):

@@ -172,7 +172,6 @@ class Component(ComponentBase):
             print(row)
 
 
-
 def flatten_json(y):
     """
     # Credits: https://gist.github.com/amirziai/2808d06f59a38138fa2d

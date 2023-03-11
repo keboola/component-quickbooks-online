@@ -1,4 +1,6 @@
 import logging
+import os
+import csv
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -16,14 +18,10 @@ KEY_CLASS_NAME = 'class_name'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
-REQUIRED_PARAMETERS = []
+REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINT]
 
 # QuickBooks Parameters
 BASE_URL = "https://quickbooks.api.intuit.com"
-
-# destination to fetch and output files
-DEFAULT_FILE_INPUT = "/data/in/tables/"
-DEFAULT_FILE_DESTINATION = "/data/out/tables/"
 
 
 class Component(ComponentBase):
@@ -59,7 +57,27 @@ class Component(ComponentBase):
 
         # INITIALIZING QUICKBOOKS INSTANCES
         oauth = self.configuration.oauth_credentials
-        quickbooks_param = QuickbooksClient(company_id=company_id, oauth=oauth)
+        statefile = self.get_state_file()
+        if statefile.get("refresh_token", {}) and statefile.get("access_token", {}):
+            refresh_token = statefile.get("refresh_token")
+            access_token = statefile.get("access_token")
+            logging.info("Loaded tokens from statefile.")
+        else:
+            refresh_token = oauth["data"]["refresh_token"]
+            access_token = oauth["data"]["access_token"]
+            logging.info("No oauth data found in statefile. Using data from Authorization.")
+            self.write_state_file({
+                "refresh_token": refresh_token,
+                "access_token": access_token
+            })
+        if params.get("sandbox"):
+            sandbox = True
+            logging.info("Sandbox environment enabled.")
+        else:
+            sandbox = False
+
+        quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=refresh_token,
+                                            access_token=access_token, oauth=oauth, sandbox=sandbox)
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
@@ -101,22 +119,15 @@ class Component(ComponentBase):
             else:
                 logging.info(
                     "Report API Template Enable: {0}".format(report_api_bool))
-
                 if report_api_bool:
-
                     if endpoint == "CustomQuery":
                         ReportMapping(endpoint=endpoint, data=input_data,
                                       query=self.start_date)
-
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
                             input_data_2 = quickbooks_param.data_2
-
-                            ReportMapping(
-                                endpoint=endpoint, data=input_data, accounting_type="accrual")
-                            ReportMapping(
-                                endpoint=endpoint, data=input_data_2, accounting_type="cash")
-
+                            ReportMapping(endpoint=endpoint, data=input_data, accounting_type="accrual")
+                            ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
                         else:
                             ReportMapping(endpoint=endpoint, data=input_data)
                 else:
@@ -131,8 +142,35 @@ class Component(ComponentBase):
             report_api_bool=True,
             start_date=self.start_date,
             end_date=self.end_date,
-            query="select  * from Class"
+            query=f"select  * from {class_name}"
         )
+
+        data = quickbooks_param.data
+        print(data)
+
+        quickbooks_param.fetch(
+            endpoint="ProfitAndLoss",
+            report_api_bool=True,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            class_object="France"
+        )
+
+        print(quickbooks_param.data)
+        ReportMapping(
+            endpoint="ProfitAndLoss", data=quickbooks_param.data, accounting_type="accrual")
+
+        out_file_path = os.path.join(self.tables_out_path, "ClassPnL.csv")
+
+        columns = quickbooks_param.data['Columns']['Column']
+        rows = quickbooks_param.data['Rows']['Row']
+
+        for column in columns:
+            print(column["ColTitle"])
+        for row in rows:
+            print(row)
+
+        exit()
 
 
 def flatten_json(y):

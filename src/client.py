@@ -5,6 +5,7 @@ import dateparser
 import pandas as pd
 import urllib.parse as url_parse
 from requests.auth import HTTPBasicAuth
+import os
 
 from keboola.component.base import ComponentBase  # noqa
 
@@ -32,13 +33,10 @@ logging.info("KBC refresh token: {0}XXXX{1}".format(
     refresh_token[0:4], refresh_token[-4:]))
 '''
 
-# QuickBooks Parameters
-BASE_URL = "https://quickbooks.api.intuit.com/v3/company"
+statefile_in_path = os.path.join(os.path.dirname(os.getcwd()), "data/in/state.json")
+statefile_out_path = os.path.join(os.path.dirname(os.getcwd()), "data/out/state.json")
 
-# Request Parameters
 requesting = requests.Session()
-
-logging.info("Quickbooks Version: {0}".format("0.2.6"))
 
 
 class QuickBooksClientException(Exception):
@@ -50,26 +48,20 @@ class QuickbooksClient:
     QuickBooks Requests Handler
     """
 
-    def __init__(self, company_id, oauth):
-
-        credentials = oauth.data
-        # credentials_json = json.loads(credentials)
-        oauth_token = credentials['access_token']
-
+    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
         self.app_key = oauth.appKey
         self.app_secret = oauth.appSecret
 
-        # Handling Refresh token
-        # If state file exist, look for new refresh token
-        refresh_token = credentials['refresh_token']
-        logging.info("KBC refresh token: {0}XXXX{1}".format(
-            refresh_token[0:4], refresh_token[-4:]))
+        if not sandbox:
+            self.base_url = "https://quickbooks.api.intuit.com/v3/company"
+        else:
+            self.base_url = "https://sandbox-quickbooks.api.intuit.com/v3/company"
 
         # Parameters for request
-        self.access_token = oauth_token
+        self.access_token = access_token
+        self.refresh_token = refresh_token
         self.access_token_refreshed = False
         self.new_refresh_token = False
-        self.refresh_token = refresh_token
         self.company_id = company_id
         self.reports_required_accounting_type = [
             "ProfitAndLoss",
@@ -79,11 +71,10 @@ class QuickbooksClient:
             "TrialBalance"
         ]
 
-    def fetch(self, endpoint, report_api_bool, start_date, end_date, query=""):
+    def fetch(self, endpoint, report_api_bool, start_date, end_date, class_object=None, query=""):
         """
         Fetching results for the specified endpoint
         """
-
         # Initializing Parameters
         self.endpoint = endpoint
         self.report_api_bool = report_api_bool
@@ -108,11 +99,12 @@ class QuickbooksClient:
             logging.info("Processing Report: {0}".format(endpoint))
             if self.endpoint == "CustomQuery":
                 if query == '':
-                    raise Exception(
-                        "Please enter query for CustomQuery. Exit...")
+                    raise QuickBooksClientException("Please enter query for CustomQuery. Exit...")
                 logging.info("Input Custom Query: {0}".format(self.start_date))
                 self.custom_request(input_query=query)
             else:
+                if not (self.start_date and self.end_date):
+                    raise QuickBooksClientException("Start date and End date are required for {endpoint}.")
                 self.report_request(endpoint, start_date, end_date)
         else:
             self.count = self.get_count()  # total count of records for pagination
@@ -129,7 +121,6 @@ class QuickbooksClient:
         """
 
         # Basic authorization header for refresh token
-        app_key_secret = "{0}:{1}".format(self.app_key, self.app_secret)  # noqa
         url = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
 
         results = None
@@ -144,17 +135,29 @@ class QuickbooksClient:
             r = requests.post(url, auth=HTTPBasicAuth(
                 self.app_key, self.app_secret), data=param)
             results = r.json()
-            print(r.json())
 
             # If access token was not fetched
             if "error" in results:
-                raise QuickBooksClientException("Cannot fetch new tokens.")
+                if not self.new_refresh_token:
+                    if os.path.isfile(statefile_in_path):
+                        with open(statefile_in_path, 'r') as f:
+                            statefile = json.load(f)
+                        if "refresh_token" in statefile:
+                            logging.info("Loading Refresh Token from State file.")
+                            self.refresh_token = statefile["refresh_token"]
+                            logging.info("State refresh token: {0}XXXX{1}".format(
+                                self.refresh_token[0:4], self.refresh_token[-4:]))
+                    self.new_refresh_token = True
+
+                else:
+                    raise QuickBooksClientException("Failed to refresh access token, please re-authorize credentials.")
             else:
                 request_success = True
 
         self.access_token = results["access_token"]
         self.refresh_token = results["refresh_token"]
         logging.info("Access Token Granted.")
+        self.write_tokens_to_manifest()
 
         # Monitor if app has requested refresh token yet
         self.access_token_refreshed = True
@@ -169,7 +172,7 @@ class QuickbooksClient:
         url = "select count(*) from {0}".format(endpoint)
         encoded_url = self.url_encode(url)
         count_url = "{0}/{1}/query?query={2}".format(
-            BASE_URL, self.company_id, encoded_url)
+            self.base_url, self.company_id, encoded_url)
 
         # Request the number of counts
         data = self._request(count_url)
@@ -195,7 +198,6 @@ class QuickbooksClient:
         """
 
         request_success = False
-        # request_fail = False
         while not request_success:
             headers = {
                 "Authorization": "Bearer " + self.access_token,
@@ -208,7 +210,7 @@ class QuickbooksClient:
             logging.info(data.headers)
             try:
                 results = json.loads(data.text)
-                print(results)
+
             except json.decoder.JSONDecodeError as e:
                 raise QuickBooksClientException(f"Cannot decode response: {data.text}") from e
 
@@ -246,7 +248,7 @@ class QuickbooksClient:
             logging.info("Request Query: {0}".format(query))
             encoded_query = self.url_encode(query)
             url = "{0}/{1}/query?query={2}".format(
-                BASE_URL, self.company_id, encoded_query)
+                self.base_url, self.company_id, encoded_query)
 
             # Requests and concatenating results into class's data variable
             results = self._request(url)
@@ -277,7 +279,7 @@ class QuickbooksClient:
         logging.info("Request Query: {0}".format(query))
         encoded_query = self.url_encode(query)
         url = "{0}/{1}/query?query={2}".format(
-            BASE_URL, self.company_id, encoded_query)
+            self.base_url, self.company_id, encoded_query)
 
         # Requests and concatenating results into class's data variable
         results = self._request(url)
@@ -291,10 +293,12 @@ class QuickbooksClient:
         # Concatenate with exist extracted data
         self.data = data
 
-    def report_request(self, endpoint, start_date, end_date):
+    def report_request(self, endpoint, start_date, end_date, class_object=None):
         """
         API request for Report Endpoint
         """
+
+        print(class_object)
 
         if start_date == "":
             date_param = ""
@@ -328,7 +332,7 @@ class QuickbooksClient:
                                           "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name," \
                                           "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt" \
 
-        url = "{0}/{1}/reports/{2}{3}".format(BASE_URL,
+        url = "{0}/{1}/reports/{2}{3}".format(self.base_url,
                                               self.company_id, endpoint, date_param)
         if endpoint in self.reports_required_accounting_type:
 
@@ -371,11 +375,8 @@ class QuickbooksClient:
         return out
 
     def json_output(self):
+        raise NotImplementedError()
         """
-        Output RAW Flatten JSON file
-        Files will be named based on the JSON property
-        """
-
         data = self.data
 
         for i in data:
@@ -393,3 +394,10 @@ class QuickbooksClient:
             file_name = "/data/out/tables/{0}_{1}.csv".format("custom", i)
             temp_df.to_csv(file_name, index=False)
             logging.info("Outputting: {0}...".format(file_name))
+        """
+
+    def write_tokens_to_manifest(self):
+        temp = {"refresh_token": self.refresh_token, "access_token": self.access_token}
+        logging.info("Saving tokens to statefile.")
+        with open(statefile_out_path, "w") as f:
+            json.dump(temp, f)

@@ -1,6 +1,5 @@
 import logging
 import os
-import csv
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException
@@ -161,6 +160,7 @@ class Component(ComponentBase):
             endpoint="ProfitAndLoss", data=quickbooks_param.data, accounting_type="accrual")
 
         out_file_path = os.path.join(self.tables_out_path, "ClassPnL.csv")
+        print(out_file_path)
 
         columns = quickbooks_param.data['Columns']['Column']
         rows = quickbooks_param.data['Rows']['Row']

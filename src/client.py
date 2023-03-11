@@ -2,7 +2,6 @@ import json
 import logging
 import requests
 import dateparser
-import pandas as pd
 import urllib.parse as url_parse
 from requests.auth import HTTPBasicAuth
 import os

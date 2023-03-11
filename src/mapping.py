@@ -37,8 +37,7 @@ class Mapping:
         """
         Selecting the Right Mapping for the specified endpoint
         """
-        map_json_path = os.path.join(os.getcwd(), "mappings.json")
-        with open(map_json_path, 'r') as f:
+        with open("mappings.json", 'r') as f:
             out = json.load(f)
         f.close()
         return out[endpoint]

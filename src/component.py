@@ -5,7 +5,7 @@ from client import QuickbooksClient
 from report_mapping import ReportMapping
 
 from keboola.component.base import ComponentBase
-from keboola.component.exceptions import UserException #noqa
+from keboola.component.exceptions import UserException  # noqa
 from keboola.csvwriter import ElasticDictWriter
 
 # configuration variables

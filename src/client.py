@@ -175,7 +175,6 @@ class QuickbooksClient:
 
         # Request the number of counts
         data = self._request(count_url)
-        logging.info(data)
 
         total_counts = data["QueryResponse"]["totalCount"]
         logging.info("Total Number of Records for {0}: {1}".format(
@@ -205,8 +204,6 @@ class QuickbooksClient:
             logging.info('Requesting: {}'.format(url))
             data = requesting.get(url, headers=headers)
 
-            # Outputting IntuitID
-            logging.info(data.headers)
             try:
                 results = json.loads(data.text)
 

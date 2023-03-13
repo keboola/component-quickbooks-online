@@ -25,8 +25,6 @@ class Mapping:
         self.out_file_pk = {self.endpoint: []}  # destination name from mapping
         self.out_file_pk_raw = {}  # raw destination name from API output
         self.get_primary_key(endpoint, self.mapping)
-        logging.info(self.out_file_pk)
-        logging.info(self.out_file_pk_raw)
 
         # Runs
         self.root_parse(data)

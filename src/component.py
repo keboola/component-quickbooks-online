@@ -1,5 +1,4 @@
 import logging
-import os
 
 from mapping import Mapping
 from client import QuickbooksClient

@@ -331,7 +331,7 @@ class QuickbooksClient:
                                           "split_acc,tx_date," \
                                           "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name," \
                                           "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt" \
-
+ \
         url = "{0}/{1}/reports/{2}{3}".format(self.base_url,
                                               self.company_id, endpoint, date_param)
         if endpoint in self.reports_required_accounting_type:
@@ -370,10 +370,10 @@ class QuickbooksClient:
                     i += 1
             else:
                 out[name[:-1]] = x
+
         flatten(y)
 
         return out
-
 
     def write_tokens_to_manifest(self):
         temp = {"refresh_token": self.refresh_token, "access_token": self.access_token}

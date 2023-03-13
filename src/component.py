@@ -1,12 +1,13 @@
 import logging
 import os
 
-from keboola.component.base import ComponentBase
-from keboola.component.exceptions import UserException
-
 from mapping import Mapping
 from client import QuickbooksClient
 from report_mapping import ReportMapping
+
+from keboola.component.base import ComponentBase
+from keboola.component.exceptions import UserException
+from keboola.csvwriter import ElasticDictWriter
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -144,8 +145,11 @@ class Component(ComponentBase):
             query=f"select  * from {class_name}"
         )
 
-        data = quickbooks_param.data
-        print(data)
+        class_data = quickbooks_param.data
+        classes = [item["Name"] for item in class_data.get("Class", []) if item.get("Name")]
+
+        if not len(classes) == class_data['totalCount']:
+            raise NotImplementedError("Classes paging not implemented yet.")
 
         quickbooks_param.fetch(
             endpoint="ProfitAndLoss",
@@ -155,46 +159,61 @@ class Component(ComponentBase):
             class_object="France"
         )
 
-        print(quickbooks_param.data)
-        ReportMapping(
-            endpoint="ProfitAndLoss", data=quickbooks_param.data, accounting_type="accrual")
+        class_pnl = self.create_out_table_definition("ClassPnL.csv")
+        report = quickbooks_param.data['Rows']['Row']
+        results = []
 
-        out_file_path = os.path.join(self.tables_out_path, "ClassPnL.csv")
-        print(out_file_path)
+        def process_coldata(obj, obj_type, obj_group):
+            col_data = obj["ColData"]
+            name = col_data[0]["value"]
+            value = col_data[1]["value"]
+            results.append({
+                "name": name,
+                "value": value,
+                "obj_type": obj_type,
+                "obj_group": obj_group
+            })
 
-        columns = quickbooks_param.data['Columns']['Column']
-        rows = quickbooks_param.data['Rows']['Row']
+        def process_object(obj):
+            obj_type = obj.get("type", "")
+            obj_group = obj.get("group", "")
 
-        exit()
+            if "ColData" in obj:
+                process_coldata(obj, obj_type, obj_group)
 
-        for column in columns:
-            print(column["ColTitle"])
-        for row in rows:
-            print(row)
+            if "Header" in obj:
+                header_name = obj["Header"]["ColData"][0]["value"]
+                header_value = obj["Header"]["ColData"][1]["value"]
+                results.append({
+                    "name": header_name,
+                    "value": header_value,
+                    "obj_type": obj_type,
+                    "obj_group": obj_group
+                })
 
+            if "Summary" in obj:
+                summary_name = obj["Summary"]["ColData"][0]["value"]
+                summary_value = obj["Summary"]["ColData"][1]["value"]
+                results.append({
+                    "name": summary_name,
+                    "value": summary_value,
+                    "obj_type": obj_type,
+                    "obj_group": obj_group
+                })
 
-def flatten_json(y):
-    """
-    # Credits: https://gist.github.com/amirziai/2808d06f59a38138fa2d
-    # flat out the json objects
-    """
-    out = {}
+            if "Rows" in obj:
+                inner_objects = obj["Rows"]["Row"]
+                for inner_object in inner_objects:
+                    process_object(inner_object)
 
-    def flatten(x, name=''):
-        if type(x) is dict:
-            for a in x:
-                flatten(x[a], name + a + '/')
-        elif type(x) is list:
-            i = 0
-            for a in x:
-                flatten(a, name + str(i) + '/')
-                i += 1
-        else:
-            out[name[:-1]] = x
+        for obj in report:
+            process_object(obj)
 
-    flatten(y)
+        with ElasticDictWriter(class_pnl.full_path, ["name", "value", "obj_type", "obj_group"]) as wr:
+            wr.writeheader()
+            wr.writerows(results)
 
-    return out
+        self.write_manifest(class_pnl)
 
 
 """

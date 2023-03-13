@@ -4,4 +4,4 @@ keboola.component==1.4.0
 keboola.http-client
 dateparser
 regex
-pandas==1.2.2
+keboola.csvwriter

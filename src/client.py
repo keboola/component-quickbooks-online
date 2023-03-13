@@ -195,7 +195,7 @@ class QuickbooksClient:
         """
         Handles Request
         """
-
+        results = None
         request_success = False
         while not request_success:
             headers = {
@@ -222,6 +222,9 @@ class QuickbooksClient:
                     raise QuickBooksClientException(data.text)
             else:
                 request_success = True
+
+        if not results:
+            raise QuickBooksClientException("Unable to fetch results.")
         return results
 
     def data_request(self):
@@ -297,8 +300,6 @@ class QuickbooksClient:
         API request for Report Endpoint
         """
 
-        print(class_object)
-
         if start_date == "":
             date_param = ""
 
@@ -373,27 +374,6 @@ class QuickbooksClient:
 
         return out
 
-    def json_output(self):
-        raise NotImplementedError()
-        """
-        data = self.data
-
-        for i in data:
-            if type(data[i]) != dict and type(data[i]) != list:
-                temp = {
-                    i: data[i]
-                }
-                temp = [temp]
-            else:
-                temp = self.flatten_json(data[i])
-                if type(temp) == dict:
-                    temp = [temp]
-
-            temp_df = pd.DataFrame(temp)
-            file_name = "/data/out/tables/{0}_{1}.csv".format("custom", i)
-            temp_df.to_csv(file_name, index=False)
-            logging.info("Outputting: {0}...".format(file_name))
-        """
 
     def write_tokens_to_manifest(self):
         temp = {"refresh_token": self.refresh_token, "access_token": self.access_token}

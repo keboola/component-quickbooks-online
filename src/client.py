@@ -48,6 +48,7 @@ class QuickbooksClient:
     """
 
     def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
+        self.data = None
         self.app_key = oauth.appKey
         self.app_secret = oauth.appSecret
 
@@ -70,7 +71,7 @@ class QuickbooksClient:
             "TrialBalance"
         ]
 
-    def fetch(self, endpoint, report_api_bool, start_date, end_date, class_object=None, query=""):
+    def fetch(self, endpoint, report_api_bool, start_date, end_date, query=""):
         """
         Fetching results for the specified endpoint
         """
@@ -292,7 +293,7 @@ class QuickbooksClient:
         # Concatenate with exist extracted data
         self.data = data
 
-    def report_request(self, endpoint, start_date, end_date, class_object=None):
+    def report_request(self, endpoint, start_date, end_date):
         """
         API request for Report Endpoint
         """
@@ -347,32 +348,12 @@ class QuickbooksClient:
             results = self._request(url)
             self.data = results
 
-    @staticmethod
-    def flatten_json(y):
-        """
-        # Credits: https://gist.github.com/amirziai/2808d06f59a38138fa2d
-        # flat out the json objects
-        """
-        out = {}
-
-        def flatten(x, name=''):
-
-            if type(x) is dict:
-                for a in x:
-                    flatten(x[a], name + a + '/')
-            elif type(x) is list:
-                i = 0
-                for a in x:
-                    flatten(a, name + str(i) + '/')
-                    i += 1
-            else:
-                out[name[:-1]] = x
-
-        flatten(y)
-
-        return out
-
     def write_tokens_to_manifest(self):
+        """
+        Saves both refresh_token and access token to statefile.
+        Refer to https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/faq
+        to find out why.
+        """
         temp = {"refresh_token": self.refresh_token, "access_token": self.access_token}
         logging.info("Saving tokens to statefile.")
         with open(statefile_out_path, "w") as f:

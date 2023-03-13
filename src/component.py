@@ -77,7 +77,7 @@ class Component(ComponentBase):
         for endpoint in endpoints:
             # Endpoint parameters
 
-            if endpoint == "ClassPnL":
+            if endpoint == "ProfitAndLossQuery":
                 self.process_pnl_report(quickbooks_param=quickbooks_param)
                 continue
 
@@ -109,7 +109,6 @@ class Component(ComponentBase):
             # output blank
             if len(input_data) == 0:
                 pass
-
             else:
                 logging.info(
                     "Report API Template Enable: {0}".format(report_api_bool))
@@ -129,44 +128,19 @@ class Component(ComponentBase):
 
     def process_pnl_report(self, quickbooks_param):
 
-        quickbooks_param.fetch(
-            endpoint="CustomQuery",
-            report_api_bool=True,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            query="select  * from Class"
-        )
-
-        class_data = quickbooks_param.data
-        classes = [item["Name"] for item in class_data.get("Class", []) if item.get("Name")]
-
-        if not len(classes) == class_data['totalCount']:
-            raise NotImplementedError("Classes paging not implemented yet.")
-
-        quickbooks_param.fetch(
-            endpoint="ProfitAndLoss",
-            report_api_bool=True,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            class_object="France"
-        )
-
-        class_pnl = self.create_out_table_definition("ClassPnL.csv")
-        report = quickbooks_param.data['Rows']['Row']
-        results = []
-
         def process_coldata(obj, obj_type, obj_group):
             col_data = obj["ColData"]
             name = col_data[0]["value"]
             value = col_data[1]["value"]
             results.append({
+                "class": class_name,
                 "name": name,
                 "value": value,
                 "obj_type": obj_type,
                 "obj_group": obj_group
             })
 
-        def process_object(obj):
+        def process_object(obj, class_name):
             obj_type = obj.get("type", "")
             obj_group = obj.get("group", "")
 
@@ -177,6 +151,7 @@ class Component(ComponentBase):
                 header_name = obj["Header"]["ColData"][0]["value"]
                 header_value = obj["Header"]["ColData"][1]["value"]
                 results.append({
+                    "class": class_name,
                     "name": header_name,
                     "value": header_value,
                     "obj_type": obj_type,
@@ -187,6 +162,7 @@ class Component(ComponentBase):
                 summary_name = obj["Summary"]["ColData"][0]["value"]
                 summary_value = obj["Summary"]["ColData"][1]["value"]
                 results.append({
+                    "class": class_name,
                     "name": summary_name,
                     "value": summary_value,
                     "obj_type": obj_type,
@@ -196,16 +172,43 @@ class Component(ComponentBase):
             if "Rows" in obj:
                 inner_objects = obj["Rows"]["Row"]
                 for inner_object in inner_objects:
-                    process_object(inner_object)
+                    process_object(inner_object, class_name)
 
-        for obj in report:
-            process_object(obj)
+        quickbooks_param.fetch(
+            endpoint="CustomQuery",
+            report_api_bool=True,
+            start_date=self.start_date,
+            end_date=self.end_date,
+            query="select * from Class"
+        )
 
-        with ElasticDictWriter(class_pnl.full_path, ["name", "value", "obj_type", "obj_group"]) as wr:
-            wr.writeheader()
-            wr.writerows(results)
+        query_result = quickbooks_param.data
+        classes = [item["Name"] for item in query_result.get("Class", []) if item.get("Name")]
 
-        self.write_manifest(class_pnl)
+        if not len(classes) == query_result['totalCount']:
+            raise NotImplementedError("Classes paging not implemented yet.")
+
+        for class_name in classes:
+
+            quickbooks_param.fetch(
+                endpoint="ProfitAndLoss",
+                report_api_bool=True,
+                start_date=self.start_date,
+                end_date=self.end_date
+            )
+
+            class_pnl = self.create_out_table_definition("ProfitAndLossQuery.csv")
+            report = quickbooks_param.data['Rows']['Row']
+            results = []
+
+            for obj in report:
+                process_object(obj, class_name)
+
+            with ElasticDictWriter(class_pnl.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+                wr.writeheader()
+                wr.writerows(results)
+
+            self.write_manifest(class_pnl)
 
 
 """

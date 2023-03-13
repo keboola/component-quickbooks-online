@@ -67,12 +67,6 @@
             "type":"string",
             "default":"",
             "propertyOrder": 4
-        },
-      "class_name":{
-         "type":"string",
-         "title":"Class Name",
-         "description":"Name of the Class that will be used to get PnL with.",
-         "propertyOrder":5
-      }
+        }
   }
 }

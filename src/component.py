@@ -13,7 +13,6 @@ KEY_COMPANY_ID = 'companyid'
 KEY_ENDPOINT = 'endpoints'
 KEY_START_DATE = 'start_date'
 KEY_END_DATE = 'end_date'
-KEY_CLASS_NAME = 'class_name'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -48,10 +47,6 @@ class Component(ComponentBase):
         company_id = params.get(KEY_COMPANY_ID)
         self.start_date = params.get(KEY_START_DATE)
         self.end_date = params.get(KEY_END_DATE)
-        if params.get(KEY_CLASS_NAME, {}):
-            class_name = params.get(KEY_CLASS_NAME)
-        else:
-            class_name = ""
         logging.info(f'Company ID: {company_id}')
 
         # INITIALIZING QUICKBOOKS INSTANCES
@@ -83,7 +78,7 @@ class Component(ComponentBase):
             # Endpoint parameters
 
             if endpoint == "ClassPnL":
-                self.process_pnl_report(class_name=class_name, quickbooks_param=quickbooks_param)
+                self.process_pnl_report(quickbooks_param=quickbooks_param)
                 continue
 
             if "**" in endpoint:
@@ -132,16 +127,14 @@ class Component(ComponentBase):
                 else:
                     Mapping(endpoint=endpoint, data=input_data)
 
-    def process_pnl_report(self, quickbooks_param, class_name):
-        if not class_name:
-            raise UserException("Cannot fetch PnLClass report, reason: class_name param not specified.")
+    def process_pnl_report(self, quickbooks_param):
 
         quickbooks_param.fetch(
             endpoint="CustomQuery",
             report_api_bool=True,
             start_date=self.start_date,
             end_date=self.end_date,
-            query=f"select  * from {class_name}"
+            query="select  * from Class"
         )
 
         class_data = quickbooks_param.data

@@ -223,6 +223,7 @@ class QuickbooksClient:
 
         if not results:
             raise QuickBooksClientException("Unable to fetch results.")
+        self.write_tokens_to_manifest()
         return results
 
     def data_request(self):
@@ -354,7 +355,7 @@ class QuickbooksClient:
         Refer to https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/faq
         to find out why.
         """
-        temp = {"refresh_token": self.refresh_token, "access_token": self.access_token}
+        temp = {"#refresh_token": self.refresh_token, "#access_token": self.access_token}
         logging.info("Saving tokens to statefile.")
         with open(statefile_out_path, "w") as f:
             json.dump(temp, f)

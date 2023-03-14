@@ -53,16 +53,16 @@ class Component(ComponentBase):
         oauth = self.configuration.oauth_credentials
         statefile = self.get_state_file()
         if statefile.get("refresh_token", {}) and statefile.get("access_token", {}):
-            refresh_token = statefile.get("refresh_token")
-            access_token = statefile.get("access_token")
+            refresh_token = statefile.get("#refresh_token")
+            access_token = statefile.get("#access_token")
             logging.info("Loaded tokens from statefile.")
         else:
             refresh_token = oauth["data"]["refresh_token"]
             access_token = oauth["data"]["access_token"]
             logging.info("No oauth data found in statefile. Using data from Authorization.")
             self.write_state_file({
-                "refresh_token": refresh_token,
-                "access_token": access_token
+                "#refresh_token": refresh_token,
+                "#access_token": access_token
             })
         if params.get("sandbox"):
             sandbox = True

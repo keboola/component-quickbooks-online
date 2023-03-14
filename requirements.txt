@@ -5,3 +5,4 @@ keboola.http-client
 dateparser
 regex
 keboola.csvwriter
+pandas==1.5.3

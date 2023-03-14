@@ -206,11 +206,11 @@ class Component(ComponentBase):
             for obj in report:
                 process_object(obj, class_name)
 
-            with ElasticDictWriter(class_pnl.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
-                wr.writeheader()
-                wr.writerows(results)
+        with ElasticDictWriter(class_pnl.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+            wr.writeheader()
+            wr.writerows(results)
 
-            self.write_manifest(class_pnl)
+        self.write_manifest(class_pnl)
 
 
 """

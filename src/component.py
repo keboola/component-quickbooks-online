@@ -184,13 +184,13 @@ class Component(ComponentBase):
 
         query_result = quickbooks_param.data
         classes = [item["Name"] for item in query_result.get("Class", []) if item.get("Name")]
-        logging.info("Found Classes: {classes}")
+        logging.info(f"Found Classes: {classes}")
 
         if not len(classes) == query_result['totalCount']:
             raise NotImplementedError("Classes paging not implemented yet.")
 
         for class_name in classes:
-            logging.info("Processing class: {class_name}")
+            logging.info(f"Processing class: {class_name}")
 
             quickbooks_param.fetch(
                 endpoint="ProfitAndLoss",

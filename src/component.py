@@ -127,53 +127,51 @@ class Component(ComponentBase):
                     Mapping(endpoint=endpoint, data=input_data)
 
     def process_pnl_report(self, quickbooks_param):
-        results = []
+        results_cash = []
+        result_accrual = []
 
-        def process_coldata(obj, obj_type, obj_group):
-            col_data = obj["ColData"]
-            name = col_data[0]["value"]
-            value = col_data[1]["value"]
-            results.append({
+        def save_result(class_name, name, value, obj_type, obj_group, method):
+            res_dict = {
                 "class": class_name,
                 "name": name,
                 "value": value,
                 "obj_type": obj_type,
                 "obj_group": obj_group
-            })
+            }
+            if method == "cash":
+                results_cash.append(res_dict)
+            elif method == "accrual":
+                result_accrual.append(res_dict)
+            else:
+                raise UserException(f"Unknown accounting method: {method}")
 
-        def process_object(obj, class_name):
+        def process_coldata(obj, obj_type, obj_group, method):
+            col_data = obj["ColData"]
+            name = col_data[0]["value"]
+            value = col_data[1]["value"]
+            save_result(class_name, name, value, obj_type, obj_group, method)
+
+        def process_object(obj, class_name, method):
             obj_type = obj.get("type", "")
             obj_group = obj.get("group", "")
 
             if "ColData" in obj:
-                process_coldata(obj, obj_type, obj_group)
+                process_coldata(obj, obj_type, obj_group, method)
 
             if "Header" in obj:
                 header_name = obj["Header"]["ColData"][0]["value"]
                 header_value = obj["Header"]["ColData"][1]["value"]
-                results.append({
-                    "class": class_name,
-                    "name": header_name,
-                    "value": header_value,
-                    "obj_type": obj_type,
-                    "obj_group": obj_group
-                })
+                save_result(class_name, header_name, header_value, obj_type, obj_group, method)
 
             if "Summary" in obj:
                 summary_name = obj["Summary"]["ColData"][0]["value"]
                 summary_value = obj["Summary"]["ColData"][1]["value"]
-                results.append({
-                    "class": class_name,
-                    "name": summary_name,
-                    "value": summary_value,
-                    "obj_type": obj_type,
-                    "obj_group": obj_group
-                })
+                save_result(class_name, summary_name, summary_value, obj_type, obj_group, method)
 
             if "Rows" in obj:
                 inner_objects = obj["Rows"]["Row"]
                 for inner_object in inner_objects:
-                    process_object(inner_object, class_name)
+                    process_object(inner_object, class_name, method)
 
         quickbooks_param.fetch(
             endpoint="CustomQuery",
@@ -200,17 +198,26 @@ class Component(ComponentBase):
                 end_date=self.end_date
             )
 
-            class_pnl = self.create_out_table_definition("ProfitAndLossQuery.csv")
-            report = quickbooks_param.data['Rows']['Row']
+            class_pnl_cash = self.create_out_table_definition("ProfitAndLossQuery_cash.csv")
+            class_pnl_accrual = self.create_out_table_definition("ProfitAndLossQuery_accrual.csv")
+            report_accrual = quickbooks_param.data['Rows']['Row']
+            report_cash = quickbooks_param.data['Rows']['Row']
 
-            for obj in report:
-                process_object(obj, class_name)
+            for obj in report_cash:
+                process_object(obj, class_name, method="cash")
+            for obj in report_accrual:
+                process_object(obj, class_name, method="accrual")
 
-        with ElasticDictWriter(class_pnl.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+        with ElasticDictWriter(class_pnl_cash.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
             wr.writeheader()
-            wr.writerows(results)
+            wr.writerows(results_cash)
 
-        self.write_manifest(class_pnl)
+        with ElasticDictWriter(class_pnl_accrual.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+            wr.writeheader()
+            wr.writerows(result_accrual)
+
+        self.write_manifest(class_pnl_cash)
+        self.write_manifest(class_pnl_accrual)
 
 
 """

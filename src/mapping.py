@@ -35,7 +35,7 @@ class Mapping:
         """
         Selecting the Right Mapping for the specified endpoint
         """
-        with open("mappings.json", 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "mappings.json"), 'r') as f:
             out = json.load(f)
         f.close()
         return out[endpoint]

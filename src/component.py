@@ -127,6 +127,7 @@ class Component(ComponentBase):
                     Mapping(endpoint=endpoint, data=input_data)
 
     def process_pnl_report(self, quickbooks_param):
+        results = []
 
         def process_coldata(obj, obj_type, obj_group):
             col_data = obj["ColData"]
@@ -201,7 +202,6 @@ class Component(ComponentBase):
 
             class_pnl = self.create_out_table_definition("ProfitAndLossQuery.csv")
             report = quickbooks_param.data['Rows']['Row']
-            results = []
 
             for obj in report:
                 process_object(obj, class_name)

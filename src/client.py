@@ -223,7 +223,6 @@ class QuickbooksClient:
 
         if not results:
             raise QuickBooksClientException("Unable to fetch results.")
-        self.write_tokens_to_manifest()
         return results
 
     def data_request(self):

@@ -1,7 +1,7 @@
 import logging
 
 from mapping import Mapping
-from client import QuickbooksClient
+from client import QuickbooksClient, QuickBooksClientException
 from report_mapping import ReportMapping
 
 from keboola.component.base import ComponentBase
@@ -90,12 +90,7 @@ class Component(ComponentBase):
 
             # Phase 1: Request
             # Handling Quickbooks Requests
-            quickbooks_param.fetch(
-                endpoint=endpoint,
-                report_api_bool=report_api_bool,
-                start_date=self.start_date,
-                end_date=self.end_date
-            )
+            self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool)
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping
@@ -173,13 +168,8 @@ class Component(ComponentBase):
                 for inner_object in inner_objects:
                     process_object(inner_object, class_name, method)
 
-        quickbooks_param.fetch(
-            endpoint="CustomQuery",
-            report_api_bool=True,
-            start_date=self.start_date,
-            end_date=self.end_date,
-            query="select * from Class"
-        )
+        self.fetch(quickbooks_param=quickbooks_param, endpoint="CustomQuery", report_api_bool=True,
+                   query="select * from Class")
 
         query_result = quickbooks_param.data
         classes = [item["Name"] for item in query_result.get("Class", []) if item.get("Name")]
@@ -191,12 +181,7 @@ class Component(ComponentBase):
         for class_name in classes:
             logging.info(f"Processing class: {class_name}")
 
-            quickbooks_param.fetch(
-                endpoint="ProfitAndLoss",
-                report_api_bool=True,
-                start_date=self.start_date,
-                end_date=self.end_date
-            )
+            self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="")
 
             class_pnl_cash = self.create_out_table_definition("ProfitAndLossQuery_cash.csv")
             class_pnl_accrual = self.create_out_table_definition("ProfitAndLossQuery_accrual.csv")
@@ -218,6 +203,18 @@ class Component(ComponentBase):
 
         self.write_manifest(class_pnl_cash)
         self.write_manifest(class_pnl_accrual)
+
+    def fetch(self, quickbooks_param, endpoint, report_api_bool, query=""):
+        try:
+            quickbooks_param.fetch(
+                endpoint=endpoint,
+                report_api_bool=report_api_bool,
+                start_date=self.start_date,
+                end_date=self.end_date,
+                query=query if query else ""
+            )
+        except QuickBooksClientException as e:
+            raise UserException(e) from e
 
 
 """

@@ -60,15 +60,16 @@ class Component(ComponentBase):
             refresh_token = oauth["data"]["refresh_token"]
             access_token = oauth["data"]["access_token"]
             logging.info("No oauth data found in statefile. Using data from Authorization.")
-            self.write_state_file({
-                "#refresh_token": refresh_token,
-                "#access_token": access_token
-            })
         if params.get("sandbox"):
             sandbox = True
             logging.info("Sandbox environment enabled.")
         else:
             sandbox = False
+
+        self.write_state_file({
+            "#refresh_token": refresh_token,
+            "#access_token": access_token
+        })
 
         quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=refresh_token,
                                             access_token=access_token, oauth=oauth, sandbox=sandbox)

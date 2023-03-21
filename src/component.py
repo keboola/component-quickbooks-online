@@ -52,7 +52,7 @@ class Component(ComponentBase):
         # INITIALIZING QUICKBOOKS INSTANCES
         oauth = self.configuration.oauth_credentials
         statefile = self.get_state_file()
-        if statefile.get("refresh_token", {}) and statefile.get("access_token", {}):
+        if statefile.get("#refresh_token", {}):
             refresh_token = statefile.get("#refresh_token")
             access_token = statefile.get("#access_token")
             logging.info("Loaded tokens from statefile.")

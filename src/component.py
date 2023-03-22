@@ -128,7 +128,7 @@ class Component(ComponentBase):
 
     def process_pnl_report(self, quickbooks_param):
         results_cash = []
-        result_accrual = []
+        results_accrual = []
 
         def save_result(class_name, name, value, obj_type, obj_group, method):
             res_dict = {
@@ -143,7 +143,7 @@ class Component(ComponentBase):
             if method == "cash":
                 results_cash.append(res_dict)
             elif method == "accrual":
-                result_accrual.append(res_dict)
+                results_accrual.append(res_dict)
             else:
                 raise UserException(f"Unknown accounting method: {method}")
 
@@ -190,28 +190,25 @@ class Component(ComponentBase):
 
             self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="")
 
-            class_pnl_cash = self.create_out_table_definition("ProfitAndLossQuery_cash.csv")
-            class_pnl_accrual = self.create_out_table_definition("ProfitAndLossQuery_accrual.csv")
             report_accrual = quickbooks_param.data['Rows']['Row']
-            report_cash = quickbooks_param.data['Rows']['Row']
+            report_cash = quickbooks_param.data_2['Rows']['Row']
 
             for obj in report_cash:
                 process_object(obj, class_name, method="cash")
             for obj in report_accrual:
                 process_object(obj, class_name, method="accrual")
 
-        with ElasticDictWriter(class_pnl_cash.full_path, ["class", "name", "value", "obj_type", "obj_group",
-                                                          "start_date", "end_date"]) as wr:
-            wr.writeheader()
-            wr.writerows(results_cash)
+        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_cash.csv", results=results_cash)
+        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual)
 
-        with ElasticDictWriter(class_pnl_accrual.full_path, ["class", "name", "value", "obj_type", "obj_group",
-                                                             "start_date", "end_date"]) as wr:
+    def save_pnl_report_to_csv(self, table_name: str, results: list):
+        table_def = self.create_out_table_definition(table_name, primary_key=["class", "start_date", "end_date"])
+        columns = ["class", "name", "value", "obj_type", "obj_group", "start_date", "end_date"]
+        with ElasticDictWriter(table_def.full_path, columns) as wr:
             wr.writeheader()
-            wr.writerows(result_accrual)
+            wr.writerows(results)
 
-        self.write_manifest(class_pnl_cash)
-        self.write_manifest(class_pnl_accrual)
+        self.write_manifest(table_def)
 
     def fetch(self, quickbooks_param, endpoint, report_api_bool, query=""):
         logging.info(f"Fetching endpoint {endpoint} with date rage: {self.start_date} - {self.end_date}")

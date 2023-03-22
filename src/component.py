@@ -136,7 +136,9 @@ class Component(ComponentBase):
                 "name": name,
                 "value": value,
                 "obj_type": obj_type,
-                "obj_group": obj_group
+                "obj_group": obj_group,
+                "start_date": self.start_date,
+                "end_date": self.end_date
             }
             if method == "cash":
                 results_cash.append(res_dict)
@@ -198,11 +200,13 @@ class Component(ComponentBase):
             for obj in report_accrual:
                 process_object(obj, class_name, method="accrual")
 
-        with ElasticDictWriter(class_pnl_cash.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+        with ElasticDictWriter(class_pnl_cash.full_path, ["class", "name", "value", "obj_type", "obj_group",
+                                                          "start_date", "end_date"]) as wr:
             wr.writeheader()
             wr.writerows(results_cash)
 
-        with ElasticDictWriter(class_pnl_accrual.full_path, ["class", "name", "value", "obj_type", "obj_group"]) as wr:
+        with ElasticDictWriter(class_pnl_accrual.full_path, ["class", "name", "value", "obj_type", "obj_group",
+                                                             "start_date", "end_date"]) as wr:
             wr.writeheader()
             wr.writerows(result_accrual)
 
@@ -222,7 +226,8 @@ class Component(ComponentBase):
         except QuickBooksClientException as e:
             raise UserException(e) from e
 
-    def process_date(self, dt):
+    @staticmethod
+    def process_date(dt):
         """Checks if date is in valid format. If not, raises UserException."""
         dt_format = '%Y-%m-%d'
         today = date.today()

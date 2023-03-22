@@ -60,12 +60,14 @@
           "title": "Start Date",
             "type":"string",
             "default": "",
+            "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
             "propertyOrder": 3
-        },
+      },
         "end_date": {
             "title": "End date",
             "type":"string",
             "default":"",
+            "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
             "propertyOrder": 4
         }
   }

@@ -25,6 +25,7 @@ class QuickbooksClient:
     """
 
     def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
+        self.data_2 = None
         self.data = None
         self.app_key = oauth.appKey
         self.app_secret = oauth.appSecret

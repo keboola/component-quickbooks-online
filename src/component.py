@@ -15,10 +15,12 @@ KEY_COMPANY_ID = 'companyid'
 KEY_ENDPOINT = 'endpoints'
 KEY_START_DATE = 'start_date'
 KEY_END_DATE = 'end_date'
+KEY_GROUP_DESTINATION = 'destination'
+KEY_LOAD_TYPE = 'load_type'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
-REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINT]
+REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINT, KEY_GROUP_DESTINATION]
 
 # QuickBooks Parameters
 BASE_URL = "https://quickbooks.api.intuit.com"
@@ -37,6 +39,7 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self.incremental = None
         self.end_date = None
         self.start_date = None
 
@@ -54,7 +57,6 @@ class Component(ComponentBase):
 
         logging.info(f'Company ID: {company_id}')
 
-        # INITIALIZING QUICKBOOKS INSTANCES
         oauth = self.configuration.oauth_credentials
         statefile = self.get_state_file()
         if statefile.get("#refresh_token", {}):
@@ -70,6 +72,13 @@ class Component(ComponentBase):
             logging.info("Sandbox environment enabled.")
         else:
             sandbox = False
+
+        destination_params = params.get(KEY_GROUP_DESTINATION)
+        if destination_params.get(KEY_LOAD_TYPE, False) == "incremental_load":
+            self.incremental = True
+        else:
+            self.incremental = False
+        logging.info(f"Load type incremental set to: {self.incremental}")
 
         self.write_state_file({
             "#refresh_token": refresh_token,
@@ -203,7 +212,8 @@ class Component(ComponentBase):
 
     def save_pnl_report_to_csv(self, table_name: str, results: list):
         table_def = self.create_out_table_definition(table_name, primary_key=["class", "name", "obj_type",
-                                                                              "start_date", "end_date"])
+                                                                              "start_date", "end_date"],
+                                                     incremental=self.incremental)
         columns = ["class", "name", "value", "obj_type", "obj_group", "start_date", "end_date"]
         with ElasticDictWriter(table_def.full_path, columns) as wr:
             wr.writeheader()

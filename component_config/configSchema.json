@@ -75,7 +75,6 @@
       "type": "object",
       "propertyOrder": 5,
       "required": [
-        "output_table_name",
         "load_type"
       ],
       "properties": {

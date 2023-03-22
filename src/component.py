@@ -202,7 +202,8 @@ class Component(ComponentBase):
         self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual)
 
     def save_pnl_report_to_csv(self, table_name: str, results: list):
-        table_def = self.create_out_table_definition(table_name, primary_key=["class", "start_date", "end_date"])
+        table_def = self.create_out_table_definition(table_name, primary_key=["class", "name", "obj_type,",
+                                                                              "start_date", "end_date"])
         columns = ["class", "name", "value", "obj_type", "obj_group", "start_date", "end_date"]
         with ElasticDictWriter(table_def.full_path, columns) as wr:
             wr.writeheader()

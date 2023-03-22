@@ -8,29 +8,6 @@ import os
 
 from keboola.component.base import ComponentBase  # noqa
 
-# Get Authorization
-# oauth = ComponentBase.configuration.oauth_credentials
-'''
-credentials = oauth["oauth_api"]["credentials"]["#data"]
-credentials_json = json.loads(credentials)
-oauth_token = credentials_json["access_token"]
-app_key = oauth["oauth_api"]["credentials"]["appKey"]
-app_secret = oauth["oauth_api"]["credentials"]["#appSecret"]
-'''
-'''
-credentials = oauth.data
-credentials_json = json.loads(credentials)
-oauth_token = credentials_json['access_token']
-app_key = oauth.appKey
-app_secret = oauth.appSecret
-
-
-# Handling Refresh Token
-# If state file exist, look for new refresh token
-refresh_token = credentials_json["refresh_token"]
-logging.info("KBC refresh token: {0}XXXX{1}".format(
-    refresh_token[0:4], refresh_token[-4:]))
-'''
 
 statefile_in_path = os.path.join(os.path.dirname(os.getcwd()), "data/in/state.json")
 statefile_out_path = os.path.join(os.path.dirname(os.getcwd()), "data/out/state.json")

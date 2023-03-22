@@ -3,6 +3,8 @@ import logging
 from mapping import Mapping
 from client import QuickbooksClient, QuickBooksClientException
 from report_mapping import ReportMapping
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
@@ -45,8 +47,11 @@ class Component(ComponentBase):
         # Input parameters
         endpoints = params.get(KEY_ENDPOINT)
         company_id = params.get(KEY_COMPANY_ID)
-        self.start_date = params.get(KEY_START_DATE)
-        self.end_date = params.get(KEY_END_DATE)
+        start_date = params.get(KEY_START_DATE)
+        end_date = params.get(KEY_END_DATE)
+        self.start_date = self.process_date(start_date)
+        self.end_date = self.process_date(end_date)
+
         logging.info(f'Company ID: {company_id}')
 
         # INITIALIZING QUICKBOOKS INSTANCES
@@ -76,7 +81,6 @@ class Component(ComponentBase):
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
-            # Endpoint parameters
 
             if endpoint == "ProfitAndLossQuery":
                 self.process_pnl_report(quickbooks_param=quickbooks_param)
@@ -177,7 +181,7 @@ class Component(ComponentBase):
         logging.info(f"Found Classes: {classes}")
 
         if not len(classes) == query_result['totalCount']:
-            raise NotImplementedError("Classes paging not implemented yet.")
+            raise NotImplementedError("Classes paging is not implemented.")
 
         for class_name in classes:
             logging.info(f"Processing class: {class_name}")
@@ -206,6 +210,7 @@ class Component(ComponentBase):
         self.write_manifest(class_pnl_accrual)
 
     def fetch(self, quickbooks_param, endpoint, report_api_bool, query=""):
+        logging.info(f"Fetching endpoint {endpoint} with date rage: {self.start_date} - {self.end_date}")
         try:
             quickbooks_param.fetch(
                 endpoint=endpoint,
@@ -216,6 +221,23 @@ class Component(ComponentBase):
             )
         except QuickBooksClientException as e:
             raise UserException(e) from e
+
+    def process_date(self, dt):
+        """Checks if date is in valid format. If not, raises UserException."""
+        dt_format = '%Y-%m-%d'
+        today = date.today()
+        if dt == "PrevMonthStart":
+            result = today.replace(day=1) - relativedelta(months=1)
+        elif dt == "PrevMonthEnd":
+            result = today.replace(day=1) - relativedelta(days=1)
+        else:
+            try:
+                date.fromisoformat(dt)
+            except ValueError:
+                raise UserException(f"Date {dt} is invalid. Valid types are: "
+                                    f"PrevMonthStart, PrevMonthEnd or YYYY-MM-DD")
+            return dt
+        return result.strftime(dt_format)
 
 
 """

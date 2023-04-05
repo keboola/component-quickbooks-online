@@ -49,7 +49,7 @@ class QuickbooksClient:
             "TrialBalance"
         ]
 
-    def fetch(self, endpoint, report_api_bool, start_date, end_date, query=""):
+    def fetch(self, endpoint, report_api_bool, start_date, end_date, query="", params=None):
         """
         Fetching results for the specified endpoint
         """
@@ -83,7 +83,7 @@ class QuickbooksClient:
             else:
                 if not (self.start_date and self.end_date):
                     raise QuickBooksClientException("Start date and End date are required for {endpoint}.")
-                self.report_request(endpoint, start_date, end_date)
+                self.report_request(endpoint, start_date, end_date, params)
         else:
             self.count = self.get_count()  # total count of records for pagination
             if self.count == 0:
@@ -169,7 +169,7 @@ class QuickbooksClient:
         out = url_parse.quote_plus(query)
         return out
 
-    def _request(self, url):
+    def _request(self, url, params=None):
         """
         Handles Request
         """
@@ -180,8 +180,8 @@ class QuickbooksClient:
                 "Authorization": "Bearer " + self.access_token,
                 "Accept": "application/json"
             }
-            logging.info('Requesting: {}'.format(url))
-            data = requesting.get(url, headers=headers)
+            logging.info(f'Requesting: {url} with params: {params}')
+            data = requesting.get(url, headers=headers, params=params)
 
             try:
                 results = json.loads(data.text)
@@ -271,7 +271,7 @@ class QuickbooksClient:
         # Concatenate with exist extracted data
         self.data = data
 
-    def report_request(self, endpoint, start_date, end_date):
+    def report_request(self, endpoint, start_date, end_date, params=None):
         """
         API request for Report Endpoint
         """
@@ -315,10 +315,10 @@ class QuickbooksClient:
             accrual_url = url + "&accounting_method=Accrual"
             cash_url = url + "&accounting_method=Cash"
 
-            results = self._request(accrual_url)
+            results = self._request(accrual_url, params)
             self.data = results
 
-            results_2 = self._request(cash_url)
+            results_2 = self._request(cash_url, params)
             self.data_2 = results_2
 
         else:

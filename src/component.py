@@ -17,6 +17,7 @@ KEY_START_DATE = 'start_date'
 KEY_END_DATE = 'end_date'
 KEY_GROUP_DESTINATION = 'destination'
 KEY_LOAD_TYPE = 'load_type'
+KEY_SUMMARIZE_COLUMN_BY = 'summarize_column_by'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -39,6 +40,7 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self.summarize_column_by = None
         self.incremental = None
         self.end_date = None
         self.start_date = None
@@ -79,6 +81,9 @@ class Component(ComponentBase):
         else:
             self.incremental = False
         logging.info(f"Load type incremental set to: {self.incremental}")
+
+        self.summarize_column_by = params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(
+            KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
 
         self.write_state_file({
             "#refresh_token": refresh_token,
@@ -194,34 +199,135 @@ class Component(ComponentBase):
         if not len(classes) == query_result['totalCount']:
             raise NotImplementedError("Classes paging is not implemented.")
 
+        params = {}
+        summarize = False
+        if self.summarize_column_by:
+            summarize = True
+            params["summarize_column_by"] = self.summarize_column_by
+
+
         for class_name in classes:
             logging.info(f"Processing class: {class_name}")
 
-            self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="")
+            self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="", params=params)
 
-            report_accrual = quickbooks_param.data['Rows']['Row']
-            report_cash = quickbooks_param.data_2['Rows']['Row']
+            summarize_by = quickbooks_param.data['Header'].get("SummarizeColumnsBy", False)
 
-            for obj in report_cash:
-                process_object(obj, class_name, method="cash")
-            for obj in report_accrual:
-                process_object(obj, class_name, method="accrual")
+            if not summarize_by:
 
-        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_cash.csv", results=results_cash)
-        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual)
+                report_accrual = quickbooks_param.data['Rows']['Row']
+                report_cash = quickbooks_param.data_2['Rows']['Row']
 
-    def save_pnl_report_to_csv(self, table_name: str, results: list):
-        table_def = self.create_out_table_definition(table_name, primary_key=["class", "name", "obj_type",
-                                                                              "start_date", "end_date"],
-                                                     incremental=self.incremental)
-        columns = ["class", "name", "value", "obj_type", "obj_group", "start_date", "end_date"]
+                for obj in report_cash:
+                    process_object(obj, class_name, method="cash")
+                for obj in report_accrual:
+                    process_object(obj, class_name, method="accrual")
+
+            else:
+
+                report_cash_data = quickbooks_param.data_2
+                report_accrual_data = quickbooks_param.data
+
+                header = quickbooks_param.data['Header']
+                summarize_by = header['SummarizeColumnsBy']
+                currency = header['Currency']
+
+                results_cash = self.preprocess_dict(report_cash_data,
+                                     class_name,
+                                     summarize_by=summarize_by,
+                                     currency=currency)
+
+                results_accrual = self.preprocess_dict(report_accrual_data,
+                                     class_name,
+                                     summarize_by=summarize_by,
+                                     currency=currency)
+
+        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_cash.csv", results=results_cash,
+                                    summarize=summarize)
+        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual,
+                                    summarize=summarize)
+
+    def preprocess_dict(self,obj, class_name, summarize_by, currency):
+        results = []
+
+        rows = obj['Rows']['Row']
+        cols = obj['Columns']['Column']
+        group_by = []
+        for col in cols:
+            group_by.append(col['ColTitle'])
+
+        def save_result(_class_name, name, value, obj_type, obj_group, category_name="", category_id=""):
+            res_dict = {
+                "class": _class_name,
+                "name": name,
+                "value": value,
+                "obj_type": obj_type,
+                "obj_group": obj_group,
+                "category_name": category_name,
+                "category_id": category_id,
+                "start_date": self.start_date,
+                "end_date": self.end_date,
+                "summarize_by": summarize_by,
+                "currency": currency
+            }
+            results.append(res_dict)
+
+        def process_coldata(obj, obj_type, obj_group):
+            col_data = obj["ColData"]
+            category_name = col_data[0]["value"]
+            category_id = col_data[0]["id"]
+            for name, val in zip(group_by, col_data):
+                if name:
+                    save_result(class_name, name, val['value'], obj_type, obj_group, category_name, category_id)
+
+        def process_object(obj, class_name):
+            obj_type = obj.get("type", "")
+            obj_group = obj.get("group", "")
+
+            if "ColData" in obj:
+                process_coldata(obj, obj_type, obj_group)
+
+            if "Header" in obj:
+                header_name = obj["Header"]["ColData"][0]["value"]
+                header_value = obj["Header"]["ColData"][1]["value"]
+                save_result(class_name, header_name, header_value, obj_type, obj_group)
+
+            if "Summary" in obj:
+                summary_name = obj["Summary"]["ColData"][0]["value"]
+                summary_value = obj["Summary"]["ColData"][1]["value"]
+                save_result(class_name, summary_name, summary_value, obj_type, obj_group)
+
+            if "Rows" in obj:
+                inner_objects = obj["Rows"]["Row"]
+                for inner_object in inner_objects:
+                    process_object(inner_object, class_name)
+
+        for row in rows:
+            process_object(row, class_name)
+
+        return results
+
+
+
+    def save_pnl_report_to_csv(self, table_name: str, results: list, summarize: bool):
+
+        if not summarize:
+            pk = ["class", "name", "obj_type", "start_date", "end_date"]
+            columns = ["class", "name", "value", "obj_type", "obj_group", "start_date", "end_date"]
+        else:
+            pk = ["class", "name", "obj_type", "category_id", "start_date", "end_date"]
+            columns = ["class", "name", "value", "obj_type", "obj_group", "category_name", "category_id",
+                       "start_date", "end_date", "summarize_by", "currency"]
+
+        table_def = self.create_out_table_definition(table_name, primary_key=pk, incremental=self.incremental)
+
         with ElasticDictWriter(table_def.full_path, columns) as wr:
             wr.writeheader()
             wr.writerows(results)
 
         self.write_manifest(table_def)
 
-    def fetch(self, quickbooks_param, endpoint, report_api_bool, query=""):
+    def fetch(self, quickbooks_param, endpoint, report_api_bool, query="", params=None):
         logging.info(f"Fetching endpoint {endpoint} with date rage: {self.start_date} - {self.end_date}")
         try:
             quickbooks_param.fetch(
@@ -229,7 +335,8 @@ class Component(ComponentBase):
                 report_api_bool=report_api_bool,
                 start_date=self.start_date,
                 end_date=self.end_date,
-                query=query if query else ""
+                query=query if query else "",
+                params=params
             )
         except QuickBooksClientException as e:
             raise UserException(e) from e

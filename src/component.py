@@ -233,21 +233,21 @@ class Component(ComponentBase):
                 currency = header['Currency']
 
                 results_cash = self.preprocess_dict(report_cash_data,
-                                     class_name,
-                                     summarize_by=summarize_by,
-                                     currency=currency)
+                                                    class_name,
+                                                    summarize_by=summarize_by,
+                                                    currency=currency)
 
                 results_accrual = self.preprocess_dict(report_accrual_data,
-                                     class_name,
-                                     summarize_by=summarize_by,
-                                     currency=currency)
+                                                       class_name,
+                                                       summarize_by=summarize_by,
+                                                       currency=currency)
 
         self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_cash.csv", results=results_cash,
                                     summarize=summarize)
         self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual,
                                     summarize=summarize)
 
-    def preprocess_dict(self,obj, class_name, summarize_by, currency):
+    def preprocess_dict(self, obj, class_name, summarize_by, currency):
         results = []
 
         rows = obj['Rows']['Row']

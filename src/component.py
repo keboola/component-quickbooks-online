@@ -205,11 +205,11 @@ class Component(ComponentBase):
             summarize = True
             params["summarize_column_by"] = self.summarize_column_by
 
-
         for class_name in classes:
             logging.info(f"Processing class: {class_name}")
 
-            self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="", params=params)
+            self.fetch(quickbooks_param=quickbooks_param, endpoint="ProfitAndLoss", report_api_bool=True, query="",
+                       params=params)
 
             summarize_by = quickbooks_param.data['Header'].get("SummarizeColumnsBy", False)
 
@@ -306,8 +306,6 @@ class Component(ComponentBase):
             process_object(row, class_name)
 
         return results
-
-
 
     def save_pnl_report_to_csv(self, table_name: str, results: list, summarize: bool):
 

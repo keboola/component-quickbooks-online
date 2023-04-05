@@ -29,6 +29,7 @@
           "CashFlow**",
           "Class",
           "Customer",
+          "Department",
           "Deposit",
           "GeneralLedger**",
           "Invoice",

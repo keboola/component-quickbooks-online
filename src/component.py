@@ -242,9 +242,14 @@ class Component(ComponentBase):
                                                        summarize_by=summarize_by,
                                                        currency=currency)
 
-        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_cash.csv", results=results_cash,
+        if summarize:
+            suffix = "_"+str(summarize_by)
+        else:
+            suffix = ""
+
+        self.save_pnl_report_to_csv(table_name=f"ProfitAndLossQuery_cash{suffix}.csv", results=results_cash,
                                     summarize=summarize)
-        self.save_pnl_report_to_csv(table_name="ProfitAndLossQuery_accrual.csv", results=results_accrual,
+        self.save_pnl_report_to_csv(table_name=f"ProfitAndLossQuery_accrual{suffix}.csv", results=results_accrual,
                                     summarize=summarize)
 
     def preprocess_dict(self, obj, class_name, summarize_by, currency):

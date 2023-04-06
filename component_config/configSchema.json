@@ -57,35 +57,31 @@
       "description": "Can be found under QuickBooks account's \"Account and Setting\".",
       "propertyOrder": 2
     },
-      "summarize_column_by": {
+    "summarize_column_by": {
       "title": "Summarize Column By",
       "type": "string",
-      "options": {
-        "dependencies": {
-          "endpoints": ["ProfitAndLossQuery"],
-          "filtered": false
-        }
-      },
-        "propertyOrder": 3
-      },
+      "propertyOrder": 3
+    },
     "date_settings": {
       "type": "object",
       "title": "Date Settings",
       "properties": {
-    "start_date": {
-      "title": "Start Date",
-      "type": "string",
-      "default": "",
-      "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 1
+        "start_date": {
+          "title": "Start Date",
+          "type": "string",
+          "default": "",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
+          "propertyOrder": 1
+        },
+        "end_date": {
+          "title": "End date",
+          "type": "string",
+          "default": "",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
+          "propertyOrder": 2
+        }
+      }
     },
-    "end_date": {
-      "title": "End date",
-      "type": "string",
-      "default": "",
-      "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 2
-    }}},
     "destination": {
       "title": "Destination",
       "type": "object",

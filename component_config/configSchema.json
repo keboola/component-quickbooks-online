@@ -38,7 +38,7 @@
           "Payment",
           "ProfitAndLoss**",
           "ProfitAndLossDetail**",
-          "ProfitAndLossQuery",
+          "ProfitAndLossQuery**",
           "Purchase",
           "PurchaseOrder",
           "TaxCode",
@@ -68,20 +68,24 @@
       },
         "propertyOrder": 3
       },
+    "date_settings": {
+      "type": "object",
+      "title": "Date Settings",
+      "properties": {
     "start_date": {
       "title": "Start Date",
       "type": "string",
       "default": "",
       "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 4
+      "propertyOrder": 1
     },
     "end_date": {
       "title": "End date",
       "type": "string",
       "default": "",
       "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 5
-    },
+      "propertyOrder": 2
+    }}},
     "destination": {
       "title": "Destination",
       "type": "object",

@@ -13,6 +13,7 @@ from keboola.csvwriter import ElasticDictWriter
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
 KEY_ENDPOINT = 'endpoints'
+GROUP_DATE_SETTINGS = 'date_settings'
 KEY_START_DATE = 'start_date'
 KEY_END_DATE = 'end_date'
 KEY_GROUP_DESTINATION = 'destination'
@@ -52,8 +53,15 @@ class Component(ComponentBase):
         # Input parameters
         endpoints = params.get(KEY_ENDPOINT)
         company_id = params.get(KEY_COMPANY_ID)
-        start_date = params.get(KEY_START_DATE)
-        end_date = params.get(KEY_END_DATE)
+
+        if params.get(GROUP_DATE_SETTINGS):
+            date_settings = params.get(GROUP_DATE_SETTINGS)
+            start_date = date_settings.get(KEY_START_DATE)
+            end_date = date_settings.get(KEY_END_DATE)
+        else:
+            start_date = self.start_date
+            end_date = self.end_date
+
         self.start_date = self.process_date(start_date)
         self.end_date = self.process_date(end_date)
 
@@ -96,7 +104,7 @@ class Component(ComponentBase):
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
 
-            if endpoint == "ProfitAndLossQuery":
+            if endpoint == "ProfitAndLossQuery**":
                 self.process_pnl_report(quickbooks_param=quickbooks_param)
                 continue
 
@@ -346,7 +354,10 @@ class Component(ComponentBase):
 
     @staticmethod
     def process_date(dt):
-        """Checks if date is in valid format. If not, raises UserException."""
+        """Checks if date is in valid format. If not, raises UserException. If None, returns None"""
+        if not dt:
+            return None
+
         dt_format = '%Y-%m-%d'
         today = date.today()
         if dt == "PrevMonthStart":

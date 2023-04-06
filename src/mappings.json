@@ -74,6 +74,68 @@
             }
         }
     },
+    "Department": {
+        "FullyQualifiedName": {
+            "type": "column",
+            "mapping": {
+                "destination": "FullyQualifiedName"
+            }
+        },
+        "domain": {
+            "type": "column",
+            "mapping": {
+                "destination": "domain"
+            }
+        },
+        "Name": {
+            "type": "column",
+            "mapping": {
+                "destination": "Name"
+            }
+        },
+        "SyncToken": {
+            "type": "column",
+            "mapping": {
+                "destination": "SyncToken"
+            }
+        },
+        "SubDepartment": {
+            "type": "column",
+            "mapping": {
+                "destination": "SubDepartment"
+            }
+        },
+        "sparse": {
+            "type": "column",
+            "mapping": {
+                "destination": "sparse"
+            }
+        },
+        "Active": {
+            "type": "column",
+            "mapping": {
+                "destination": "Active"
+            }
+        },
+        "Id": {
+            "type": "column",
+            "mapping": {
+                "destination": "Id"
+            }
+        },
+        "MetaData.CreateTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "CreateTime"
+            }
+        },
+        "MetaData.LastUpdatedTime": {
+            "type": "column",
+            "mapping": {
+                "destination": "LastUpdatedTime"
+            }
+        }
+    },
     "Bill": {
         "Id": {
             "type": "column",

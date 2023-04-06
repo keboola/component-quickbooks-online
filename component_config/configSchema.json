@@ -29,6 +29,7 @@
           "CashFlow**",
           "Class",
           "Customer",
+          "Department",
           "Deposit",
           "GeneralLedger**",
           "Invoice",
@@ -56,24 +57,35 @@
       "description": "Can be found under QuickBooks account's \"Account and Setting\".",
       "propertyOrder": 2
     },
+      "summarize_column_by": {
+      "title": "Summarize Column By",
+      "type": "string",
+      "options": {
+        "dependencies": {
+          "endpoints": ["ProfitAndLossQuery"],
+          "filtered": false
+        }
+      },
+        "propertyOrder": 3
+      },
     "start_date": {
       "title": "Start Date",
       "type": "string",
       "default": "",
       "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 3
+      "propertyOrder": 4
     },
     "end_date": {
       "title": "End date",
       "type": "string",
       "default": "",
       "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "destination": {
       "title": "Destination",
       "type": "object",
-      "propertyOrder": 5,
+      "propertyOrder": 6,
       "required": [
         "load_type"
       ],
@@ -94,7 +106,7 @@
           "format": "checkbox",
           "title": "Load Type",
           "description": "If Full load is used, the destination table will be overwritten every run. If incremental load is used, data will be upserted into the destination table. Tables with a primary key will have rows updated, tables without a primary key will have rows appended.",
-          "propertyOrder": 10
+          "propertyOrder": 1
         }
       }
     }

@@ -54,7 +54,7 @@
       "options": {
         "tags": true
       },
-      "description": "Can be found under QuickBooks account's \"Account and Setting\".",
+      "description": "Select which endpoints you want to process.",
       "propertyOrder": 2
     },
     "summarize_column_by": {

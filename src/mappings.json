@@ -3040,5 +3040,343 @@
                 }
             }
         }
+    },
+    "Preferences": {
+        "EmailMessagesPrefs.InvoiceMessage.Message": {
+            "type": "column",
+            "mapping": {
+                "destination": "Message"
+                }
+            },
+            "EmailMessagesPrefs.InvoiceMessage.Subject": {
+                "type":"column",
+                "mapping": {
+                    "destination": "Subject"
+                }
+            },
+            "ProductAndServicesPrefs.QuantityWithPriceAndRate": {
+                "type":"column",
+                "mapping": {
+                    "destination": "QuantityWithPriceAndRate"
+                }
+            },
+            "ProductAndServicesPrefs.ForPurchase": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ForPurchase"
+                }
+            },
+            "ProductAndServicesPrefs.QuantityOnHand": {
+                "type":"column",
+                "mapping": {
+                    "destination": "QuantityOnHand"
+                }
+            },
+            "ProductAndServicesPrefs.ForSales": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ForSales"
+                }
+            },
+            "domain": {
+                "type":"column",
+                "mapping": {
+                    "destination": "domain"
+                }
+            },
+                    "SyncToken": {
+                "type":"column",
+                "mapping": {
+                    "destination": "SyncToken"
+                }
+            },
+            "ReportPrefs.ReportBasis": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ReportBasis"
+                }
+            },
+            "ReportPrefs.CalcAgingReportFromTxnDate": {
+                "type":"column",
+                "mapping": {
+                    "destination": "CalcAgingReportFromTxnDate"
+                }
+            },
+            "AccountingInfoPrefs.FirstMonthOfFiscalYear": {
+                "type":"column",
+                "mapping": {
+                    "destination": "FirstMonthOfFiscalYear"
+                }
+            },
+            "AccountingInfoPrefs.UseAccountNumbers": {
+                "type":"column",
+                "mapping": {
+                    "destination": "UseAccountNumbers"
+                }
+            },
+            "AccountingInfoPrefs.TaxYearMonth": {
+                "type":"column",
+                "mapping": {
+                    "destination": "TaxYearMonth"
+                }
+            },
+            "AccountingInfoPrefs.ClassTrackingPerTxn": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ClassTrackingPerTxn"
+                }
+            },
+            "AccountingInfoPrefs.TrackDepartments": {
+                "type":"column",
+                "mapping": {
+                    "destination": "TrackDepartments"
+                }
+            },
+            "AccountingInfoPrefs.TaxForm": {
+                "type":"column",
+                "mapping": {
+                    "destination": "TaxForm"
+                }
+            },
+            "AccountingInfoPrefs.CustomerTerminology": {
+                "type":"column",
+                "mapping": {
+                    "destination": "CustomerTerminology"
+                }
+            },
+            "AccountingInfoPrefs.BookCloseDate": {
+                "type":"column",
+                "mapping": {
+                    "destination": "BookCloseDate"
+                }
+            },
+            "AccountingInfoPrefs.DepartmentTerminology": {
+                "type":"column",
+                "mapping": {
+                    "destination": "DepartmentTerminology"
+                }
+            },
+            "AccountingInfoPrefs.ClassTrackingPerTxnLine": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ClassTrackingPerTxnLine"
+                }
+            },
+            "SalesFormsPrefs.ETransactionPaymentEnabled": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ETransactionPaymentEnabled"
+                }
+            },
+            "SalesFormsPrefs.CustomTxnNumbers": {
+                "type":"column",
+                "mapping": {
+                    "destination": "CustomTxnNumbers"
+                }
+            },
+            "SalesFormsPrefs.AllowShipping": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AllowShipping"
+                }
+            },
+            "SalesFormsPrefs.AllowServiceDate": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AllowServiceDate"
+                }
+            },
+            "SalesFormsPrefs.ETransactionEnabledStatus": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ETransactionEnabledStatus"
+                }
+            },
+            "SalesFormsPrefs.DefaultCustomerMessage": {
+                "type":"column",
+                "mapping": {
+                    "destination": "DefaultCustomerMessage"
+                }
+            },
+            "SalesFormsPrefs.EmailCopyToCompany": {
+                "type":"column",
+                "mapping": {
+                    "destination": "EmailCopyToCompany"
+                }
+            },
+            "SalesFormsPrefs.AllowEstimates": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AllowEstimates"
+                }
+            },
+            "SalesFormsPrefs.DefaultTerms.value": {
+                "type":"column",
+                "mapping": {
+                    "destination": "DefaultTerms"
+                }
+            },
+            "SalesFormsPrefs.AllowDiscount": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AllowDiscount"
+                }
+            },
+            "SalesFormsPrefs.DefaultDiscountAccount": {
+                "type":"column",
+                "mapping": {
+                    "destination": "DefaultDiscountAccount"
+                }
+            },
+            "SalesFormsPrefs.AllowDeposit": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AllowDeposit"
+                }
+            },
+            "SalesFormsPrefs.AutoApplyPayments": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AutoApplyPayments"
+                }
+            },
+            "SalesFormsPrefs.IPNSupportEnabled": {
+                "type":"column",
+                "mapping": {
+                    "destination": "IPNSupportEnabled"
+                }
+            },
+            "SalesFormsPrefs.AutoApplyCredit": {
+                "type":"column",
+                "mapping": {
+                    "destination": "AutoApplyCredit"
+                }
+            },
+            "SalesFormsPrefs.CustomField": {
+                "type":"column",
+                "mapping": {
+                    "destination": "CustomField"
+                }
+            },
+            "SalesFormsPrefs.UsingPriceLevels": {
+                "type":"column",
+                "mapping": {
+                    "destination": "UsingPriceLevels"
+                }
+            },
+            "SalesFormsPrefs.ETransactionAttachPDF": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ETransactionAttachPDF"
+                }
+            },
+            "VendorAndPurchasesPrefs.BillableExpenseTracking": {
+                "type":"column",
+                "mapping": {
+                    "destination": "BillableExpenseTracking"
+                }
+            },
+            "VendorAndPurchasesPrefs.TrackingByCustomer": {
+                "type":"column",
+                "mapping": {
+                    "destination": "TrackingByCustomer"
+                }
+            },
+            "VendorAndPurchasesPrefs.POCustomField": {
+                "type":"column",
+                "mapping": {
+                    "destination": "POCustomField"
+                }
+            },
+            "TaxPrefs.TaxGroupCodeRef.value": {
+                "type":"column",
+                "mapping": {
+                    "destination": "TaxGroupCodeRef"
+                }
+            },
+            "TaxPrefs.UsingSalesTax": {
+                "type":"column",
+                "mapping": {
+                    "destination": "UsingSalesTax"
+                }
+            },
+            "OtherPrefs.NameValue": {
+                "type":"column",
+                "mapping": {
+                    "destination": "OtherPrefs"
+                }
+            },
+            "sparse": {
+                "type":"column",
+                "mapping": {
+                    "destination": "sparse"
+                }
+            },
+            "TimeTrackingPrefs.WorkWeekStartDate": {
+                "type":"column",
+                "mapping": {
+                    "destination": "WorkWeekStartDate"
+                }
+            },
+            "TimeTrackingPrefs.MarkTimeEntriesBillable": {
+                "type":"column",
+                "mapping": {
+                    "destination": "MarkTimeEntriesBillable"
+                }
+            },
+            "TimeTrackingPrefs.ShowBillRateToAll": {
+                "type":"column",
+                "mapping": {
+                    "destination": "ShowBillRateToAll"
+                }
+            },
+            "TimeTrackingPrefs.UseServices": {
+                "type":"column",
+                "mapping": {
+                    "destination": "UseServices"
+                }
+            },
+            "TimeTrackingPrefs.BillCustomers": {
+                "type":"column",
+                "mapping": {
+                    "destination": "BillCustomers"
+                }
+            },
+            "CurrencyPrefs.HomeCurrency.value": {
+                "type":"column",
+                "mapping": {
+                    "destination": "HomeCurrency"
+                }
+            },
+            "CurrencyPrefs.MultiCurrencyEnabled": {
+                "type":"column",
+                "mapping": {
+                    "destination": "MultiCurrencyEnabled"
+                }
+            },
+            "Id": {
+                "type":"column",
+                "mapping": {
+                    "destination": "Id"
+                }
+            },
+            "MetaData.CreateTime": {
+                "type":"column",
+                "mapping": {
+                    "destination": "CreateTime"
+                }
+            },
+            "MetaData.LastUpdatedTime": {
+                "type":"column",
+                "mapping": {
+                    "destination": "LastUpdatedTime"
+                }
+            },
+            "time": {
+                "type":"column",
+                "mapping": {
+                    "destination": "time"
+                }
+            }
     }
 }

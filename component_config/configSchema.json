@@ -36,6 +36,7 @@
           "Item",
           "JournalEntry",
           "Payment",
+          "Preferences",
           "ProfitAndLoss**",
           "ProfitAndLossDetail**",
           "ProfitAndLossQuery**",
@@ -59,6 +60,7 @@
     },
     "summarize_column_by": {
       "title": "Summarize Column By",
+      "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other endpoints.",
       "type": "string",
       "propertyOrder": 3
     },
@@ -70,14 +72,14 @@
           "title": "Start Date",
           "type": "string",
           "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects ** endpoints.",
           "propertyOrder": 1
         },
         "end_date": {
           "title": "End date",
           "type": "string",
           "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format.",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects ** endpoints.",
           "propertyOrder": 2
         }
       }

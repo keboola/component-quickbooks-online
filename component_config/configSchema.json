@@ -71,7 +71,7 @@
       "options": {
         "tags": true
       },
-      "description": "Select which endpoints you want to process.",
+      "description": "Select which reports you want to process.",
       "propertyOrder": 3
     },
     "summarize_column_by": {
@@ -96,7 +96,7 @@
           "type": "string",
           "default": "",
           "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
-          "propertyOrder": 2
+          "propertyOrder": 3
         }
       }
     },
@@ -124,7 +124,7 @@
           "format": "checkbox",
           "title": "Load Type",
           "description": "If Full load is used, the destination table will be overwritten every run. If incremental load is used, data will be upserted into the destination table. Tables with a primary key will have rows updated, tables without a primary key will have rows appended.",
-          "propertyOrder": 1
+          "propertyOrder": 4
         }
       }
     }

@@ -3045,13 +3045,49 @@
         "EmailMessagesPrefs.InvoiceMessage.Message": {
             "type": "column",
             "mapping": {
-                "destination": "Message"
+                "destination": "InvoiceMessage_Message"
                 }
             },
             "EmailMessagesPrefs.InvoiceMessage.Subject": {
                 "type":"column",
                 "mapping": {
-                    "destination": "Subject"
+                    "destination": "InvoiceMessage_Subject"
+                }
+            },
+            "EmailMessagesPrefs.EstimateMessage.Message": {
+                "type": "column",
+                "mapping": {
+                    "destination": "EstimateMessage_Message"
+                    }
+            },
+            "EmailMessagesPrefs.EstimateMessage.Subject": {
+                "type":"column",
+                "mapping": {
+                    "destination": "EstimateMessage_Subject"
+                }
+            },
+            "EmailMessagesPrefs.SalesReceiptMessage.Message": {
+                "type": "column",
+                "mapping": {
+                    "destination": "SalesReceiptMessage_Message"
+                    }
+            },
+            "EmailMessagesPrefs.SalesReceiptMessage.Subject": {
+                "type":"column",
+                "mapping": {
+                    "destination": "SalesReceiptMessage_Subject"
+                }
+            },
+            "EmailMessagesPrefs.StatementMessage.Message": {
+                "type": "column",
+                "mapping": {
+                    "destination": "StatementMessage_Message"
+                    }
+            },
+            "EmailMessagesPrefs.StatementMessage.Subject": {
+                "type":"column",
+                "mapping": {
+                    "destination": "StatementMessage_Subject"
                 }
             },
             "ProductAndServicesPrefs.QuantityWithPriceAndRate": {

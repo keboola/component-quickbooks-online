@@ -78,12 +78,12 @@
       "title": "Summarize Column By (optional)",
       "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other reports.",
       "type": "string",
-      "propertyOrder": 3
+      "propertyOrder": 4
     },
     "date_settings": {
       "type": "object",
       "title": "Date Settings",
-      "propertyOrder": 4,
+      "propertyOrder": 5,
       "properties": {
         "start_date": {
           "title": "Start Date",

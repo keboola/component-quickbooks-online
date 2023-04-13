@@ -60,7 +60,6 @@
           "BalanceSheet**",
           "CashFlow**",
           "GeneralLedger**",
-          "ProfitAndLoss**",
           "ProfitAndLossDetail**",
           "ProfitAndLossQuery**",
           "TransactionList**",

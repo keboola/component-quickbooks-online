@@ -139,6 +139,7 @@ class Component(ComponentBase):
                     "Report API Template Enable: {0}".format(report_api_bool))
                 if report_api_bool:
                     if endpoint == "CustomQuery":
+                        # Not implemented
                         ReportMapping(endpoint=endpoint, data=input_data,
                                       query=self.start_date)
                     else:

@@ -82,7 +82,7 @@ class QuickbooksClient:
                 self.custom_request(input_query=query)
             else:
                 if not (self.start_date and self.end_date):
-                    raise QuickBooksClientException("Start date and End date are required for {endpoint}.")
+                    raise QuickBooksClientException(f"Start date and End date are required for {endpoint} reports.")
                 self.report_request(endpoint, start_date, end_date, params)
         else:
             self.count = self.get_count()  # total count of records for pagination

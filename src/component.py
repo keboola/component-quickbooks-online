@@ -12,7 +12,8 @@ from keboola.csvwriter import ElasticDictWriter
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
-KEY_ENDPOINT = 'endpoints'
+KEY_ENDPOINTS = 'endpoints'
+KEY_REPORTS = 'reports'
 GROUP_DATE_SETTINGS = 'date_settings'
 KEY_START_DATE = 'start_date'
 KEY_END_DATE = 'end_date'
@@ -22,7 +23,7 @@ KEY_SUMMARIZE_COLUMN_BY = 'summarize_column_by'
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
-REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINT, KEY_GROUP_DESTINATION]
+REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINTS, KEY_REPORTS, KEY_GROUP_DESTINATION]
 
 # QuickBooks Parameters
 BASE_URL = "https://quickbooks.api.intuit.com"
@@ -51,8 +52,10 @@ class Component(ComponentBase):
         params = self.configuration.parameters
 
         # Input parameters
-        endpoints = params.get(KEY_ENDPOINT)
-        company_id = params.get(KEY_COMPANY_ID)
+        endpoints = params.get(KEY_ENDPOINTS)
+        reports = params.get(KEY_REPORTS)
+        company_id = params.get(KEY_COMPANY_ID, [])
+        endpoints.extend(reports)
 
         if params.get(GROUP_DATE_SETTINGS):
             date_settings = params.get(GROUP_DATE_SETTINGS)

@@ -22,32 +22,24 @@
         "type": "string",
         "enum": [
           "Account",
-          "BalanceSheet**",
           "Bill",
           "BillPayment",
           "Budget",
-          "CashFlow**",
           "Class",
           "Customer",
           "Department",
           "Deposit",
-          "GeneralLedger**",
           "Invoice",
           "Item",
           "JournalEntry",
           "Payment",
           "Preferences",
-          "ProfitAndLoss**",
-          "ProfitAndLossDetail**",
-          "ProfitAndLossQuery**",
           "Purchase",
           "PurchaseOrder",
           "TaxCode",
           "TaxRate",
           "Term",
-          "TransactionList**",
           "Transfer",
-          "TrialBalance**",
           "Vendor"
         ]
       },
@@ -58,9 +50,33 @@
       "description": "Select which endpoints you want to process.",
       "propertyOrder": 2
     },
+    "reports": {
+      "type": "array",
+      "title": "Reports",
+      "format": "select",
+      "items": {
+        "type": "string",
+        "enum": [
+          "BalanceSheet**",
+          "CashFlow**",
+          "GeneralLedger**",
+          "ProfitAndLoss**",
+          "ProfitAndLossDetail**",
+          "ProfitAndLossQuery**",
+          "TransactionList**",
+          "TrialBalance**"
+        ]
+      },
+      "uniqueItems": true,
+      "options": {
+        "tags": true
+      },
+      "description": "Select which endpoints you want to process.",
+      "propertyOrder": 2
+    },
     "summarize_column_by": {
-      "title": "Summarize Column By",
-      "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other endpoints.",
+      "title": "Summarize Column By (optional)",
+      "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other reports.",
       "type": "string",
       "propertyOrder": 3
     },
@@ -72,14 +88,14 @@
           "title": "Start Date",
           "type": "string",
           "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects ** endpoints.",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
           "propertyOrder": 1
         },
         "end_date": {
           "title": "End date",
           "type": "string",
           "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects ** endpoints.",
+          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
           "propertyOrder": 2
         }
       }

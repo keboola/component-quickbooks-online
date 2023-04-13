@@ -72,7 +72,7 @@
         "tags": true
       },
       "description": "Select which endpoints you want to process.",
-      "propertyOrder": 2
+      "propertyOrder": 3
     },
     "summarize_column_by": {
       "title": "Summarize Column By (optional)",

@@ -83,6 +83,7 @@
     "date_settings": {
       "type": "object",
       "title": "Date Settings",
+      "propertyOrder": 4,
       "properties": {
         "start_date": {
           "title": "Start Date",

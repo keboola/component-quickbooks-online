@@ -8,7 +8,6 @@ from dateutil.relativedelta import relativedelta
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
-from keboola.csvwriter import ElasticDictWriter
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -45,7 +44,7 @@ class Component(ComponentBase):
         # Input parameters
         endpoints = params.get(KEY_ENDPOINTS)
         reports = params.get(KEY_REPORTS)
-        company_id = params.get(KEY_COMPANY_ID, [])
+        company_id = params.get(KEY_COMPANY_ID, []).replace(" ", "")
         endpoints.extend(reports)
 
         if params.get(GROUP_DATE_SETTINGS):

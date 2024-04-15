@@ -162,10 +162,10 @@ class Mapping:
         *** Sub-function of parse() ***
         """
 
-        if type(data) == dict:
+        if isinstance(data, dict):
             self.parsing(table_name, mapping, data)
 
-        elif type(data) == list:
+        elif isinstance(data, list):
             for row in data:
                 self.parsing(table_name, mapping, row)
 

@@ -1,16 +1,13 @@
-import json
 import logging
-import requests
+import json
 import dateparser
 import urllib.parse as url_parse
+import requests
 from requests.auth import HTTPBasicAuth
-import os
-
+from requests.exceptions import HTTPError
+import backoff
 from keboola.component.base import ComponentBase  # noqa
-
-
-statefile_in_path = os.path.join(os.path.dirname(os.getcwd()), "data/in/state.json")
-statefile_out_path = os.path.join(os.path.dirname(os.getcwd()), "data/out/state.json")
+from typing import Tuple
 
 requesting = requests.Session()
 
@@ -48,6 +45,14 @@ class QuickbooksClient:
             "BalanceSheet",
             "TrialBalance"
         ]
+
+    def get_new_refresh_token(self) -> Tuple[str, str]:
+        try:
+            self.refresh_access_token()
+        except Exception as e:
+            raise QuickBooksClientException(e) from e
+
+        return self.refresh_token, self.access_token
 
     def fetch(self, endpoint, report_api_bool, start_date, end_date, query="", params=None):
         """
@@ -93,51 +98,31 @@ class QuickbooksClient:
             else:
                 self.data_request()
 
+    @backoff.on_exception(backoff.expo, HTTPError, max_tries=3)
     def refresh_access_token(self):
         """
-        Get a new access token with refresh token
+        Get a new access token with refresh token.
+        Also saves the new token in statefile.
         """
+        logging.info("Refreshing Access Token")
 
-        # Basic authorization header for refresh token
         url = "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer"
+        param = {
+            "grant_type": "refresh_token",
+            "refresh_token": self.refresh_token
+        }
 
-        results = None
-        request_success = False
-        while not request_success:
-            # Request Parameters
-            param = {
-                "grant_type": "refresh_token",
-                "refresh_token": self.refresh_token
-            }
+        r = requests.post(url, auth=HTTPBasicAuth(self.app_key, self.app_secret), data=param)
+        r.raise_for_status()
 
-            r = requests.post(url, auth=HTTPBasicAuth(
-                self.app_key, self.app_secret), data=param)
-            results = r.json()
+        results = r.json()
 
-            # If access token was not fetched
-            if "error" in results:
-                if not self.new_refresh_token:
-                    if os.path.isfile(statefile_in_path):
-                        with open(statefile_in_path, 'r') as f:
-                            statefile = json.load(f)
-                        if "refresh_token" in statefile:
-                            logging.info("Loading Refresh Token from State file.")
-                            self.refresh_token = statefile["refresh_token"]
-                            logging.info("State refresh token: {0}XXXX{1}".format(
-                                self.refresh_token[0:4], self.refresh_token[-4:]))
-                    self.new_refresh_token = True
-
-                else:
-                    raise QuickBooksClientException("Failed to refresh access token, please re-authorize credentials.")
-            else:
-                request_success = True
+        if "error" in results:
+            raise QuickBooksClientException(f"Failed to refresh access token, please re-authorize credentials:"
+                                            f" {r.text}")
 
         self.access_token = results["access_token"]
         self.refresh_token = results["refresh_token"]
-        logging.info("Access Token Granted.")
-        self.write_tokens_to_manifest()
-
-        # Monitor if app has requested refresh token yet
         self.access_token_refreshed = True
 
     def get_count(self):
@@ -325,14 +310,3 @@ class QuickbooksClient:
 
             results = self._request(url)
             self.data = results
-
-    def write_tokens_to_manifest(self):
-        """
-        Saves both refresh_token and access token to statefile.
-        Refer to https://developer.intuit.com/app/developer/qbo/docs/develop/authentication-and-authorization/faq
-        to find out why.
-        """
-        temp = {"#refresh_token": self.refresh_token, "#access_token": self.access_token}
-        logging.info("Saving tokens to statefile.")
-        with open(statefile_out_path, "w") as f:
-            json.dump(temp, f)

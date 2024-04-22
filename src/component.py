@@ -210,6 +210,12 @@ class Component(ComponentBase):
                             "is unavailable. Skipping token save at the beginning of the run.")
             return
 
+    def _get_storage_token(self) -> str:
+        token = self.configuration.parameters.get('#storage_token') or self.environment_variables.token
+        if not token:
+            raise UserException("Cannot retrieve storage token from env variables and/or config.")
+        return token
+
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
         url = "https://encryption.keboola.com/encrypt"
@@ -237,7 +243,7 @@ class Component(ComponentBase):
               f'{configurationId}/state'
 
         parameters = {'state': json.dumps(state)}
-        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()} # TODO: ta metoda neexistuje? bez toho to nepujde ulozit.
+        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()}
         response = requests.put(url,
                                 data=parameters,
                                 headers=headers)

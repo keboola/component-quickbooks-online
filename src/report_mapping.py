@@ -5,14 +5,6 @@ import json
 import pandas as pd
 import copy
 
-# TODO: tohle tu uz asi nemusi byt
-"__author__ = 'Leo Chan'"
-"__credits__ = 'Keboola 2017'"
-"__project__ = 'kbc_quickbooks'"
-
-"""
-Python 3 environment
-"""
 
 # destination to fetch and output files
 cwd_parent = os.path.dirname(os.getcwd())
@@ -21,7 +13,6 @@ DEFAULT_FILE_DESTINATION = os.path.join(cwd_parent, "data/out/tables/")
 
 
 class ReportMapping:
-    # TODO: Slo by to nejak procistit? At tam nejsou ty zakomentovany veci, ktere uz nejsou potreba.
     """
     Parser dedicated for Report endpoint
     """
@@ -32,9 +23,7 @@ class ReportMapping:
         self.data = data
         self.header = self.construct_header(data)
         self.columns = [
-            # "Time",
             "ReportName",
-            # "DateMacro",
             "StartPeriod",
             "EndPeriod"
         ]
@@ -55,11 +44,15 @@ class ReportMapping:
 
         if endpoint not in report_cant_parse:
 
-            self.itr = 1
-            self.data_out = self.parse(
-                data["Rows"]["Row"], self.header, self.itr)
-            self.columns = self.arrange_header(self.columns)
-            self.output(self.endpoint, self.data_out, self.primary_key)
+            try:
+                self.itr = 1
+                self.data_out = self.parse(
+                    data["Rows"]["Row"], self.header, self.itr)
+                self.columns = self.arrange_header(self.columns)
+                self.output(self.endpoint, self.data_out, self.primary_key)
+            except (KeyError, ValueError):
+                logging.warning(
+                    "Report contains no data. Please check if the selected period is correct.")
 
         elif endpoint == "CustomQuery":
 
@@ -97,7 +90,6 @@ class ReportMapping:
             json_out = {
                 "Time": temp["Time"],
                 "ReportName": temp["ReportName"],
-                # "DateMacro": temp["DateMacro"],
                 "StartPeriod": temp["StartPeriod"],
                 "EndPeriod": temp["EndPeriod"]
             }
@@ -122,7 +114,7 @@ class ReportMapping:
 
     # TODO: Tohle je vubec peklo. Ten Quickbooks muze byt ruzne nastaveny, a podle nastaveni se to chova ruzne.
     # Tady by to chtelo trochu peci, protoze to uz neni na miru jednomu klientovi.
-    def parse(self, data_in, row, itr):  # , data_out):
+    def parse(self, data_in, row, itr):
         """
         Main parser for rows
         Params:
@@ -130,74 +122,76 @@ class ReportMapping:
         row         - output json formatted row for one sub section within the table
         itr         - record of the number of recursion
         """
+        try:
+            data_out = []
+            for i in data_in:
+                temp_row = copy.deepcopy(row)
+                row_name = "Col_{0}".format(itr)
 
-        data_out = []
-        for i in data_in:
-            temp_row = copy.deepcopy(row)
-            row_name = "Col_{0}".format(itr)
+                if ("type" not in i) and ("group" in i):
 
-            if ("type" not in i) and ("group" in i):
+                    if row_name not in self.columns:
+                        self.columns.append(row_name)
+                        self.primary_key.append(row_name)
 
-                if row_name not in self.columns:
-                    self.columns.append(row_name)
-                    self.primary_key.append(row_name)
-
-                temp_out = []
-                row[row_name] = i["group"]
-                row["Col_{0}".format(itr + 1)] = i["ColData"][0]["value"]
-                row["value"] = i["ColData"][1]["value"]
-                temp_out = [row]
-                data_out = data_out + temp_out
-
-            elif i["type"] == "Section":
-
-                if row_name not in self.columns:
-                    self.columns.append(row_name)
-                    self.primary_key.append(row_name)
-
-                # Use Group if Header is not found as column values
-                if "Header" in i:
-
-                    row[row_name] = i["Header"]["ColData"][0]["value"] # TODO: tady to muze spadnout: https://connection.keboola.com/admin/projects/9382/queue/1113801978?eventId=8341388959
-                    # Recursion when type data is not found
-                    temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
-
-                elif "group" in i:
-
-                    # Column name
+                    temp_out = []
                     row[row_name] = i["group"]
-
-                    # Row value , assuming no more recursion
-                    row["Col_{0}".format(
-                        itr + 1)] = i["Summary"]["ColData"][0]["value"]
-                    row["value"] = i["Summary"]["ColData"][1]["value"]
+                    row["Col_{0}".format(itr + 1)] = i["ColData"][0]["value"]
+                    row["value"] = i["ColData"][1]["value"]
                     temp_out = [row]
+                    data_out = data_out + temp_out
 
-                    if "Col_{0}".format(itr + 1) not in self.columns:
-                        self.columns.append("Col_{0}".format(itr + 1))
-                        self.primary_key.append("Col_{0}".format(itr + 1))
+                elif i["type"] == "Section":
 
-                data_out = data_out + temp_out  # Append data back to section
+                    if row_name not in self.columns:
+                        self.columns.append(row_name)
+                        self.primary_key.append(row_name)
 
-            elif (i["type"] == "Data") or ("ColData" in i):
+                    # Use Group if Header is not found as column values
+                    if "Header" in i:
+                        row[row_name] = i["Header"]["ColData"][0]["value"]
+                        # Recursion when type data is not found
+                        temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 
-                if row_name not in self.columns:
-                    self.columns.append(row_name)
-                    self.primary_key.append(row_name)
-                temp_row[row_name] = i["ColData"][0]["value"]
+                    elif "group" in i:
 
-                row_value = "value"
-                if row_value not in self.columns:
-                    self.columns.append(row_value)
-                temp_row[row_value] = i["ColData"][1]["value"]
+                        # Column name
+                        row[row_name] = i["group"]
 
-                data_out.append(temp_row)
+                        # Row value , assuming no more recursion
+                        row["Col_{0}".format(
+                            itr + 1)] = i["Summary"]["ColData"][0]["value"]
+                        row["value"] = i["Summary"]["ColData"][1]["value"]
+                        temp_out = [row]
 
-            else:
-                raise Exception(
-                    "No type found within the row. Please validate the data.")
+                        if "Col_{0}".format(itr + 1) not in self.columns:
+                            self.columns.append("Col_{0}".format(itr + 1))
+                            self.primary_key.append("Col_{0}".format(itr + 1))
 
-        return data_out
+                    data_out = data_out + temp_out  # Append data back to section
+
+                elif (i["type"] == "Data") or ("ColData" in i):
+
+                    if row_name not in self.columns:
+                        self.columns.append(row_name)
+                        self.primary_key.append(row_name)
+                    temp_row[row_name] = i["ColData"][0]["value"]
+
+                    row_value = "value"
+                    if row_value not in self.columns:
+                        self.columns.append(row_value)
+                    temp_row[row_value] = i["ColData"][1]["value"]
+
+                    data_out.append(temp_row)
+
+                else:
+                    raise Exception(
+                        "No type found within the row. Please validate the data.")
+
+            return data_out
+
+        except (KeyError, ValueError):
+            logging.warning("Report contains no data., Please check if the selected period is correct.")
 
     @staticmethod
     def produce_manifest(file_name, primary_key):
@@ -206,19 +200,10 @@ class ReportMapping:
         """
 
         file = DEFAULT_FILE_DESTINATION + str(file_name) + ".manifest"
-        # destination_part = file_name.split(".csv")[0]
 
         manifest_template = {
-            # "source": "myfile.csv"
-            # ,"destination": "in.c-mybucket.table"
             "incremental": bool(True)
-            # ,"primary_key": ["VisitID","Value","MenuItem","Section"]
-            # ,"columns": [""]
-            # ,"delimiter": "|"
-            # ,"enclosure": ""
         }
-
-        column_header = []  # noqa
 
         manifest = manifest_template
         manifest["primary_key"] = primary_key
@@ -269,12 +254,7 @@ class ReportMapping:
 
         with open(DEFAULT_FILE_DESTINATION + filename, "a") as f:
             writer = csv.writer(f)
-            # writer.writerow(["range", "start_date", "end_date", "content"])
-            # writer.writerow([date_concat, start_date, end_date, "{0}".format(self.content)])
             writer.writerows(data_out)
-            # f.write(["content"])
-            # f.write(["{0}"].format(self.content))
         f.close()
         logging.info("Outputting {0}... ".format(filename))
-        # if not os.path.isfile(DEFAULT_FILE_DESTINATION+filename):
         self.produce_manifest(filename, pk)

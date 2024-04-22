@@ -98,6 +98,11 @@
           "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
           "propertyOrder": 3
         }
+      },
+      "options": {
+        "dependencies": {
+          "reports": true
+        }
       }
     },
     "destination": {

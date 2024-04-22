@@ -237,7 +237,7 @@ class Component(ComponentBase):
               f'{configurationId}/state'
 
         parameters = {'state': json.dumps(state)}
-        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()}
+        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()} # TODO: ta metoda neexistuje? bez toho to nepujde ulozit.
         response = requests.put(url,
                                 data=parameters,
                                 headers=headers)

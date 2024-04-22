@@ -5,6 +5,7 @@ import json
 import pandas as pd
 import copy
 
+# TODO: tohle tu uz asi nemusi byt
 "__author__ = 'Leo Chan'"
 "__credits__ = 'Keboola 2017'"
 "__project__ = 'kbc_quickbooks'"
@@ -20,6 +21,7 @@ DEFAULT_FILE_DESTINATION = os.path.join(cwd_parent, "data/out/tables/")
 
 
 class ReportMapping:
+    # TODO: Slo by to nejak procistit? At tam nejsou ty zakomentovany veci, ktere uz nejsou potreba.
     """
     Parser dedicated for Report endpoint
     """
@@ -118,6 +120,8 @@ class ReportMapping:
 
         return columns
 
+    # TODO: Tohle je vubec peklo. Ten Quickbooks muze byt ruzne nastaveny, a podle nastaveni se to chova ruzne.
+    # Tady by to chtelo trochu peci, protoze to uz neni na miru jednomu klientovi.
     def parse(self, data_in, row, itr):  # , data_out):
         """
         Main parser for rows
@@ -154,7 +158,7 @@ class ReportMapping:
                 # Use Group if Header is not found as column values
                 if "Header" in i:
 
-                    row[row_name] = i["Header"]["ColData"][0]["value"]
+                    row[row_name] = i["Header"]["ColData"][0]["value"] # TODO: tady to muze spadnout: https://connection.keboola.com/admin/projects/9382/queue/1113801978?eventId=8341388959
                     # Recursion when type data is not found
                     temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 

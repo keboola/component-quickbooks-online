@@ -1,1 +1,1 @@
-Testing functional sample extractor for purposes of the python component template. 
+QuickBooks Online is accounting software that helps you get organized, save time, and simplify your business finances.

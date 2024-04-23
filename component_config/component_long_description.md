@@ -1,2 +1,1 @@
-Testing functional sample extractor for purposes of the python component template. 
-Implements partial Hubspot extractor using the public sandbox token.
+The QuickBooks Online Data Source Component enables you to access transactional data or create reports for specific time periods.

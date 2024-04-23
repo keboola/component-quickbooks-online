@@ -1,9 +1,11 @@
 mock
 freezegun
-keboola.component==1.4.0
+keboola.component==1.4.3
 keboola.http-client
-dateparser
+dateparser==1.1.8
 regex
 keboola.csvwriter
-keboola.utils ==1.1.0
-pandas
+keboola.utils==1.1.0
+pandas==2.0.0
+backoff==2.2.1
+kbcstorage==0.7.2

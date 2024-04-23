@@ -1,4 +1,10 @@
+import os
 import logging
+import datetime
+import requests
+import backoff
+import json
+
 
 from mapping import Mapping
 from client import QuickbooksClient, QuickBooksClientException
@@ -8,6 +14,9 @@ from dateutil.relativedelta import relativedelta
 
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
+
+URL_SUFFIXES = {"CURRENT_STACK": os.environ.get('KBC_STACKID', 'connection.keboola.com').replace('connection', '')}
+
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -19,6 +28,8 @@ KEY_END_DATE = 'end_date'
 KEY_GROUP_DESTINATION = 'destination'
 KEY_LOAD_TYPE = 'load_type'
 KEY_SUMMARIZE_COLUMN_BY = 'summarize_column_by'
+KEY_SANDBOX = 'sandbox'
+
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -36,6 +47,8 @@ class Component(ComponentBase):
         self.incremental = None
         self.end_date = None
         self.start_date = None
+        self.refresh_token = None
+        self.access_token = None
 
     def run(self):
         self.validate_configuration_parameters(REQUIRED_PARAMETERS)
@@ -61,20 +74,11 @@ class Component(ComponentBase):
         logging.info(f'Company ID: {company_id}')
 
         oauth = self.configuration.oauth_credentials
-        statefile = self.get_state_file()
-        if statefile.get("#refresh_token", {}):
-            refresh_token = statefile.get("#refresh_token")
-            access_token = statefile.get("#access_token")
-            logging.info("Loaded tokens from statefile.")
-        else:
-            refresh_token = oauth["data"]["refresh_token"]
-            access_token = oauth["data"]["access_token"]
-            logging.info("No oauth data found in statefile. Using data from Authorization.")
-        if params.get("sandbox"):
-            sandbox = True
+        self.refresh_token, self.access_token = self.get_tokens(oauth)
+
+        sandbox = self.configuration.parameters.get(KEY_SANDBOX, False)
+        if sandbox:
             logging.info("Sandbox environment enabled.")
-        else:
-            sandbox = False
 
         destination_params = params.get(KEY_GROUP_DESTINATION)
         if destination_params.get(KEY_LOAD_TYPE, False) == "incremental_load":
@@ -87,12 +91,17 @@ class Component(ComponentBase):
             KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
 
         self.write_state_file({
-            "#refresh_token": refresh_token,
-            "#access_token": access_token
+            "tokens":
+                {"ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                 "#refresh_token": self.refresh_token,
+                 "#access_token": self.access_token}
         })
 
-        quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=refresh_token,
-                                            access_token=access_token, oauth=oauth, sandbox=sandbox)
+        quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=self.refresh_token,
+                                            access_token=self.access_token, oauth=oauth, sandbox=sandbox)
+
+        if not sandbox:
+            self.process_oauth_tokens(quickbooks_param)
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
@@ -137,6 +146,108 @@ class Component(ComponentBase):
                             ReportMapping(endpoint=endpoint, data=input_data)
                 else:
                     Mapping(endpoint=endpoint, data=input_data)
+
+    def get_tokens(self, oauth):
+
+        try:
+            refresh_token = oauth["data"]["refresh_token"]
+            access_token = oauth["data"]["access_token"]
+        except TypeError:
+            raise UserException("OAuth data is not available.")
+
+        statefile = self.get_state_file()
+        if statefile.get("tokens", {}).get("ts"):
+            ts_oauth = datetime.datetime.strptime(oauth["created"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            ts_statefile = datetime.datetime.strptime(statefile["tokens"]["ts"], "%Y-%m-%dT%H:%M:%S.%fZ")
+
+            if ts_statefile > ts_oauth:
+                refresh_token = statefile["tokens"].get("#refresh_token")
+                access_token = statefile["tokens"].get("#access_token")
+                logging.debug("Loaded tokens from statefile.")
+            else:
+                logging.debug("Using tokens from oAuth.")
+        else:
+            logging.warning("No timestamp found in statefile. Using oAuth tokens.")
+
+        return refresh_token, access_token
+
+    def process_oauth_tokens(self, client) -> None:
+        """Uses Quickbooks client to get new tokens and saves them using API if they have changed since the last run."""
+        new_refresh_token, new_access_token = client.get_new_refresh_token()
+        if self.refresh_token != new_refresh_token:
+            self.save_new_oauth_tokens(new_refresh_token, new_access_token)
+
+            # We also save new tokens to class vars, so we can save them unencrypted if case statefile update fails
+            # in update_config_state() method.
+            self.refresh_token = new_refresh_token
+            self.access_token = new_access_token
+
+    def save_new_oauth_tokens(self, refresh_token: str, access_token: str) -> None:
+        logging.debug("Saving new tokens to state using Keboola API.")
+
+        try:
+            encrypted_refresh_token = self.encrypt(refresh_token)
+            encrypted_access_token = self.encrypt(access_token)
+        except requests.exceptions.RequestException:
+            logging.warning("Encrypt API is unavailable. Skipping token save at the beginning of the run.")
+            return
+
+        new_state = {
+            "component": {
+                "tokens":
+                    {"ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
+                     "#refresh_token": encrypted_refresh_token,
+                     "#access_token": encrypted_access_token}
+            }}
+        try:
+            self.update_config_state(region="CURRENT_STACK",
+                                     component_id=self.environment_variables.component_id,
+                                     configurationId=self.environment_variables.config_id,
+                                     state=new_state,
+                                     branch_id=self.environment_variables.branch_id)
+        except requests.exceptions.RequestException:
+            logging.warning("Storage API (update config state)"
+                            "is unavailable. Skipping token save at the beginning of the run.")
+            return
+
+    def _get_storage_token(self) -> str:
+        token = self.configuration.parameters.get('#storage_token') or self.environment_variables.token
+        if not token:
+            raise UserException("Cannot retrieve storage token from env variables and/or config.")
+        return token
+
+    @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
+    def encrypt(self, token: str) -> str:
+        url = "https://encryption.keboola.com/encrypt"
+        params = {
+            "componentId": self.environment_variables.component_id,
+            "projectId": self.environment_variables.project_id,
+            "configId": self.environment_variables.config_id
+        }
+        headers = {"Content-Type": "text/plain"}
+
+        response = requests.post(url,
+                                 data=token,
+                                 params=params,
+                                 headers=headers)
+        response.raise_for_status()
+        return response.text
+
+    @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
+    def update_config_state(self, region, component_id, configurationId, state, branch_id='default'):
+        if not branch_id:
+            branch_id = 'default'
+
+        url = f'https://connection{URL_SUFFIXES[region]}/v2/storage/branch/{branch_id}' \
+              f'/components/{component_id}/configs/' \
+              f'{configurationId}/state'
+
+        parameters = {'state': json.dumps(state)}
+        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()}
+        response = requests.put(url,
+                                data=parameters,
+                                headers=headers)
+        response.raise_for_status()
 
     def fetch(self, quickbooks_param, endpoint, report_api_bool, query="", params=None):
         logging.info(f"Fetching endpoint {endpoint} with date rage: {self.start_date} - {self.end_date}")

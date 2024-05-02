@@ -150,8 +150,9 @@ class ReportMapping:
                     # Use Group if Header is not found as column values
                     if "Header" in i:
                         row[row_name] = i["Header"]["ColData"][0]["value"]
-                        # Recursion when type data is not found
-                        temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
+                        if "rows" in i:
+                            # Recursion when type data is not found
+                            temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 
                     elif "group" in i:
 

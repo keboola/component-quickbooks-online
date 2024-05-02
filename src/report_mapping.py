@@ -122,6 +122,8 @@ class ReportMapping:
         itr         - record of the number of recursion
         """
         try:
+            if len(data_in) == 0:
+                raise Exception("Report contains no data., Please check if the selected period is correct.")
             data_out = []
             for i in data_in:
                 temp_row = copy.deepcopy(row)
@@ -149,9 +151,8 @@ class ReportMapping:
                     # Use Group if Header is not found as column values
                     if "Header" in i:
                         row[row_name] = i["Header"]["ColData"][0]["value"]
-                        if "rows" in i:
-                            # Recursion when type data is not found
-                            temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
+                        # Recursion when type data is not found
+                        temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 
                     elif "group" in i:
 

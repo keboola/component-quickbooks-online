@@ -5,7 +5,6 @@ import json
 import pandas as pd
 import copy
 
-
 # destination to fetch and output files
 cwd_parent = os.path.dirname(os.getcwd())
 DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")

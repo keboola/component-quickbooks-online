@@ -122,8 +122,6 @@ class ReportMapping:
         itr         - record of the number of recursion
         """
         try:
-            if len(data_in) == 0:
-                raise Exception("Report contains no data., Please check if the selected period is correct.")
             data_out = []
             for i in data_in:
                 temp_row = copy.deepcopy(row)
@@ -192,7 +190,7 @@ class ReportMapping:
             return data_out
 
         except (KeyError, ValueError):
-            logging.warning("Report contains no data., Please check if the selected period is correct.")
+            logging.warning("Parsing - Key Error or Value Error.")
 
     @staticmethod
     def produce_manifest(file_name, primary_key):

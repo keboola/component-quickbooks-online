@@ -5,7 +5,6 @@ import requests
 import backoff
 import json
 
-
 from mapping import Mapping
 from client import QuickbooksClient, QuickBooksClientException
 from report_mapping import ReportMapping
@@ -16,7 +15,6 @@ from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
 
 URL_SUFFIXES = {"CURRENT_STACK": os.environ.get('KBC_STACKID', 'connection.keboola.com').replace('connection', '')}
-
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -29,7 +27,6 @@ KEY_GROUP_DESTINATION = 'destination'
 KEY_LOAD_TYPE = 'load_type'
 KEY_SUMMARIZE_COLUMN_BY = 'summarize_column_by'
 KEY_SANDBOX = 'sandbox'
-
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.

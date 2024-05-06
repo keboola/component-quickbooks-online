@@ -61,7 +61,7 @@
           "CashFlow**",
           "GeneralLedger**",
           "ProfitAndLossDetail**",
-          "ProfitAndLossQuery**",
+          "ProfitAndLoss**",
           "TransactionList**",
           "TrialBalance**"
         ]

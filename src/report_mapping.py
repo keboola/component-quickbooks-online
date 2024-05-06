@@ -5,7 +5,6 @@ import json
 import pandas as pd
 import copy
 
-
 # destination to fetch and output files
 cwd_parent = os.path.dirname(os.getcwd())
 DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")
@@ -190,8 +189,8 @@ class ReportMapping:
 
             return data_out
 
-        except (KeyError, ValueError):
-            logging.warning("Report contains no data., Please check if the selected period is correct.")
+        except (KeyError, ValueError) as e:
+            logging.warning(f"Parsing error - {type(e).__name__} occurred. Details: {e}")
 
     @staticmethod
     def produce_manifest(file_name, primary_key):

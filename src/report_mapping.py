@@ -189,8 +189,8 @@ class ReportMapping:
 
             return data_out
 
-        except (KeyError, ValueError):
-            logging.warning("Parsing - Key Error or Value Error.")
+        except (KeyError, ValueError) as e:
+            logging.warning(f"Parsing error - {type(e).__name__} occurred. Details: {e}")
 
     @staticmethod
     def produce_manifest(file_name, primary_key):

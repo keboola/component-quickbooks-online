@@ -56,6 +56,7 @@ class Component(ComponentBase):
         reports = params.get(KEY_REPORTS)
         company_id = params.get(KEY_COMPANY_ID, []).replace(" ", "")
         endpoints.extend(reports)
+        fetch_params = None
 
         if params.get(GROUP_DATE_SETTINGS):
             date_settings = params.get(GROUP_DATE_SETTINGS)
@@ -87,6 +88,9 @@ class Component(ComponentBase):
         self.summarize_column_by = params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(
             KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
 
+        if self.summarize_column_by:
+            fetch_params = {"summarize_column_by": self.summarize_column_by}
+
         self.write_state_file({
             "tokens":
                 {"ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
@@ -112,7 +116,8 @@ class Component(ComponentBase):
 
             # Phase 1: Request
             # Handling Quickbooks Requests
-            self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool)
+            self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool,
+                       params=fetch_params if fetch_params else None)
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping

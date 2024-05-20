@@ -75,63 +75,77 @@
     },
     "summarize_column_by": {
       "title": "Summarize Column By (optional)",
-      "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other reports.",
+      "description": "Enables Grouping for ProfitAndLoss** endpoint. Does not affect other reports.",
       "type": "string",
-      "propertyOrder": 4
-    },
-    "date_settings": {
-      "type": "object",
-      "title": "Date Settings",
-      "propertyOrder": 5,
-      "properties": {
-        "start_date": {
-          "title": "Start Date",
-          "type": "string",
-          "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
-          "propertyOrder": 1
+      "enum": [
+        "Total",
+        "Month",
+        "Week",
+        "Days",
+        "Quarter",
+        "Year",
+        "Customers",
+        "Vendors",
+        "Classes",
+        "Departments",
+        "Employees",
+        "ProductsAndServices"
+      ],
+        "propertyOrder": 4
+      },
+      "date_settings": {
+        "type": "object",
+        "title": "Date Settings",
+        "propertyOrder": 5,
+        "properties": {
+          "start_date": {
+            "title": "Start Date",
+            "type": "string",
+            "default": "",
+            "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
+            "propertyOrder": 1
+          },
+          "end_date": {
+            "title": "End date",
+            "type": "string",
+            "default": "",
+            "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
+            "propertyOrder": 3
+          }
         },
-        "end_date": {
-          "title": "End date",
-          "type": "string",
-          "default": "",
-          "description": "Valid types are: PrevMonthStart, PrevMonthEnd or a date in YYYY-MM-DD format. Only affects reports.",
-          "propertyOrder": 3
+        "options": {
+          "dependencies": {
+            "reports": true
+          }
         }
       },
-      "options": {
-        "dependencies": {
-          "reports": true
-        }
-      }
-    },
-    "destination": {
-      "title": "Destination",
-      "type": "object",
-      "propertyOrder": 6,
-      "required": [
-        "load_type"
-      ],
-      "properties": {
-        "load_type": {
-          "type": "string",
-          "enum": [
-            "full_load",
-            "incremental_load"
-          ],
-          "options": {
-            "enum_titles": [
-              "Full Load",
-              "Incremental Load"
-            ]
-          },
-          "default": "full_load",
-          "format": "checkbox",
-          "title": "Load Type",
-          "description": "If Full load is used, the destination table will be overwritten every run. If incremental load is used, data will be upserted into the destination table. Tables with a primary key will have rows updated, tables without a primary key will have rows appended.",
-          "propertyOrder": 4
+      "destination": {
+        "title": "Destination",
+        "type": "object",
+        "propertyOrder": 6,
+        "required": [
+          "load_type"
+        ],
+        "properties": {
+          "load_type": {
+            "type": "string",
+            "enum": [
+              "full_load",
+              "incremental_load"
+            ],
+            "options": {
+              "enum_titles": [
+                "Full Load",
+                "Incremental Load"
+              ]
+            },
+            "default": "full_load",
+            "format": "checkbox",
+            "title": "Load Type",
+            "description": "If Full load is used, the destination table will be overwritten every run. If incremental load is used, data will be upserted into the destination table. Tables with a primary key will have rows updated, tables without a primary key will have rows appended.",
+            "propertyOrder": 4
+          }
         }
       }
     }
   }
-}

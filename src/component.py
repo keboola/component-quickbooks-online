@@ -40,6 +40,7 @@ class Component(ComponentBase):
 
     def __init__(self):
         super().__init__()
+        self.fetch_params = None
         self.summarize_column_by = None
         self.incremental = None
         self.end_date = None
@@ -56,7 +57,6 @@ class Component(ComponentBase):
         reports = params.get(KEY_REPORTS)
         company_id = params.get(KEY_COMPANY_ID, []).replace(" ", "")
         endpoints.extend(reports)
-        fetch_params = None
 
         if params.get(GROUP_DATE_SETTINGS):
             date_settings = params.get(GROUP_DATE_SETTINGS)
@@ -89,7 +89,7 @@ class Component(ComponentBase):
             KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
 
         if self.summarize_column_by:
-            fetch_params = {"summarize_column_by": self.summarize_column_by}
+            self.fetch_params = {"summarize_column_by": self.summarize_column_by}
 
         self.write_state_file({
             "tokens":
@@ -114,10 +114,14 @@ class Component(ComponentBase):
                 endpoint = endpoint
                 report_api_bool = False
 
+            # Change report columns only for profit and loss tested yet
+            if endpoint != "ProfitAndLoss":
+                self.fetch_params = None
+
             # Phase 1: Request
             # Handling Quickbooks Requests
             self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool,
-                       params=fetch_params if fetch_params else None)
+                       params=self.fetch_params)
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping

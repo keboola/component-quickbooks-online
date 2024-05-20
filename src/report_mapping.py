@@ -21,16 +21,14 @@ class ReportMapping:
         self.endpoint = endpoint
         self.data = data
         self.header = self.construct_header(data)
-        self.columns = [
-            "ReportName",
-            "StartPeriod",
-            "EndPeriod"
-        ]
-        self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
         self.query = query
         self.accounting_type = accounting_type
         # Output
         self.data_out = []
+
+        if self.check_no_report_data(data):
+            logging.warning(
+                "Report contains no data. Please check if the selected period is correct.")
 
         # Run
         report_cant_parse = [
@@ -45,13 +43,33 @@ class ReportMapping:
 
             try:
                 self.itr = 1
-                self.data_out = self.parse(
-                    data["Rows"]["Row"], self.header, self.itr)
-                self.columns = self.arrange_header(self.columns)
-                self.output(self.endpoint, self.data_out, self.primary_key)
-            except (KeyError, ValueError):
-                logging.warning(
-                    "Report contains no data. Please check if the selected period is correct.")
+                if "SummarizeColumnsBy" in data["Header"]:
+                    if endpoint == "ProfitAndLoss":
+                        summarize_columns_by = data["Header"]["SummarizeColumnsBy"]
+                        self.columns = ["ReportName",
+                                        "StartPeriod",
+                                        "EndPeriod",
+                                        "Category",
+                                        summarize_columns_by,
+                                        "value"]
+                        self.primary_key = ["ReportName", "StartPeriod", "EndPeriod", "Category", summarize_columns_by]
+                        self.data_out = self.parse_summarized(data["Rows"]["Row"], self.header, self.itr,
+                                                              summarize_columns_by)
+                        self.columns = self.arrange_header(self.columns)
+                        self.output(self.endpoint, self.data_out, self.primary_key)
+                else:
+                    self.columns = [
+                        "ReportName",
+                        "StartPeriod",
+                        "EndPeriod"
+                    ]
+                    self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
+                    self.data_out = self.parse(
+                        data["Rows"]["Row"], self.header, self.itr)
+                    self.columns = self.arrange_header(self.columns)
+                    self.output(self.endpoint, self.data_out, self.primary_key)
+            except (KeyError, ValueError) as ex:
+                logging.error(f"It caused an error while parsing! Message: {ex}")
 
         elif endpoint == "CustomQuery":
 
@@ -71,6 +89,18 @@ class ReportMapping:
             self.columns.append("value")
             self.output_1cell(self.endpoint, self.columns,
                               self.data_out, self.primary_key)
+
+    @staticmethod
+    def check_no_report_data(data):
+        """
+        Check if the report contains no data
+        """
+
+        if 'Header' in data:
+            if 'Option' in data['Header']:
+                if 'NoReportData' in data['Header']['Option']:
+                    return data['Header']['Option']['NoReportData']
+        return False
 
     @staticmethod
     def construct_header(data):
@@ -118,11 +148,12 @@ class ReportMapping:
         Main parser for rows
         Params:
         data_in     - input data for parser
-        row         - output json formatted row for one sub section within the table
+        row         - output json formatted row for one subsection within the table
         itr         - record of the number of recursion
         """
         try:
             data_out = []
+            temp_out = []
             for i in data_in:
                 temp_row = copy.deepcopy(row)
                 row_name = "Col_{0}".format(itr)
@@ -133,7 +164,6 @@ class ReportMapping:
                         self.columns.append(row_name)
                         self.primary_key.append(row_name)
 
-                    temp_out = []
                     row[row_name] = i["group"]
                     row["Col_{0}".format(itr + 1)] = i["ColData"][0]["value"]
                     row["value"] = i["ColData"][1]["value"]
@@ -186,6 +216,66 @@ class ReportMapping:
                 else:
                     raise Exception(
                         "No type found within the row. Please validate the data.")
+
+            return data_out
+
+        except (KeyError, ValueError) as e:
+            logging.warning(f"Parsing error - {type(e).__name__} occurred. Details: {e}")
+
+    def parse_summarized(self, data_in, row, itr, summarize_columns_by=None):
+        """
+        Main parser for rows for the new format
+        Params:
+        data_in     - input data for parser
+        row         - output json formatted row for one subsection within the table
+        itr         - record of the number of recursion
+        """
+        try:
+            data_out = []
+            for i in data_in:
+                temp_row = copy.deepcopy(row)
+                temp_out = []
+
+                if "type" not in i and "group" in i:
+                    temp_row["Category"] = i["group"]
+                    temp_out = self.parse_summarized(i["Rows"]["Row"], temp_row, itr + 1, summarize_columns_by)
+                    data_out.extend(temp_out)
+
+                elif i["type"] == "Section":
+                    if "Header" in i:
+                        temp_row["Category"] = i["Header"]["ColData"][0]["value"]
+                        temp_out = self.parse_summarized(i["Rows"]["Row"], temp_row, itr + 1, summarize_columns_by)
+                    elif "group" in i:
+                        temp_row["Category"] = i["group"]
+                        temp_out = [temp_row]
+                    data_out.extend(temp_out)
+
+                elif i["type"] == "Data" or "ColData" in i:
+                    temp_row["Category"] = i["ColData"][0]["value"]
+                    for idx, col in enumerate(i["ColData"][1:], 1):
+                        summarize_value = self.data["Columns"]["Column"][idx]["ColTitle"]
+                        value = col["value"]
+                        data_out.append({
+                            "ReportName": temp_row["ReportName"],
+                            "StartPeriod": temp_row["StartPeriod"],
+                            "EndPeriod": temp_row["EndPeriod"],
+                            "Category": temp_row["Category"],
+                            summarize_columns_by: summarize_value,
+                            "value": value
+                        })
+
+                elif "Summary" in i:
+                    for idx, col in enumerate(i["Summary"]["ColData"], 1):
+                        summarize_value = self.data["Columns"]["Column"][idx]["ColTitle"]
+                        value = col["value"]
+                        data_out.append({
+                            "ReportName": temp_row["ReportName"],
+                            "StartPeriod": temp_row["StartPeriod"],
+                            "EndPeriod": temp_row["EndPeriod"],
+                            "Category": i["Summary"]["ColData"][0]["value"],
+                            summarize_columns_by: summarize_value,
+                            "value": value
+                        })
 
             return data_out
 

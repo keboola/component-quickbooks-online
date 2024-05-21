@@ -221,7 +221,7 @@ class ReportMapping:
             summarize_by = header['SummarizeColumnsBy']
 
             # Initialize columns and primary keys
-            self.columns = ['ReportName', 'StartPeriod', 'EndPeriod', 'Time', 'Currency', 'summarize_columns_by',
+            self.columns = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'summarize_columns_by',
                             'summarize_columns_value', 'value']
             self.primary_key = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'summarize_columns_by',
                                 'summarize_columns_value']
@@ -280,7 +280,6 @@ class ReportMapping:
                 'ReportName': header['ReportName'],
                 'StartPeriod': header['StartPeriod'],
                 'EndPeriod': header['EndPeriod'],
-                'Time': header['Time'],
                 'Currency': currency
             }
 

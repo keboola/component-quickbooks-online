@@ -221,10 +221,10 @@ class ReportMapping:
             summarize_by = header['SummarizeColumnsBy']
 
             # Initialize columns and primary keys
-            self.columns = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'summarize_columns_by',
-                            'summarize_columns_value', 'value']
-            self.primary_key = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'summarize_columns_by',
-                                'summarize_columns_value']
+            self.columns = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'Summarize_columns_by',
+                            'Summarize_columns_value', 'value']
+            self.primary_key = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'Summarize_columns_by',
+                                'Summarize_columns_value']
 
             def parse_row(row_data, current_row, itr):
                 local_data_out = []  # Use local list to gather data within this function
@@ -251,9 +251,9 @@ class ReportMapping:
                             summarize_column_value = col['ColTitle']
                             temp_row = copy.deepcopy(current_row)
                             temp_row[account_col] = item['ColData'][0]['value']
-                            temp_row['summarize_columns_value'] = summarize_column_value
+                            temp_row['Summarize_columns_value'] = summarize_column_value
                             temp_row['value'] = item['ColData'][idx]['value'] if idx < len(item['ColData']) else ""
-                            temp_row['summarize_columns_by'] = summarize_by
+                            temp_row['Summarize_columns_by'] = summarize_by
                             local_data_out.append(temp_row)
 
                     elif 'Summary' in item:
@@ -266,10 +266,10 @@ class ReportMapping:
                             summarize_column_value = col['ColTitle']
                             temp_row = copy.deepcopy(current_row)
                             temp_row[account_col] = item['Summary']['ColData'][0]['value']
-                            temp_row['summarize_columns_value'] = summarize_column_value
+                            temp_row['Summarize_columns_value'] = summarize_column_value
                             temp_row['value'] = item['Summary']['ColData'][idx]['value'] if idx < len(
                                 item['Summary']['ColData']) else ""
-                            temp_row['summarize_columns_by'] = summarize_by
+                            temp_row['Summarize_columns_by'] = summarize_by
                             local_data_out.append(temp_row)
                     else:
                         raise Exception("Unexpected data structure found within the row.")

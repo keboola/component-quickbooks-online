@@ -26,9 +26,7 @@ class ReportMapping:
         # Output
         self.data_out = []
 
-        if self.check_no_report_data(data):
-            logging.warning(
-                "Report contains no data. Please check if the selected period is correct.")
+        self.check_no_report_data(data)
 
         # Run
         report_cant_parse = [
@@ -45,27 +43,13 @@ class ReportMapping:
                 self.itr = 1
                 if "SummarizeColumnsBy" in data["Header"]:
                     if endpoint == "ProfitAndLoss":
-                        summarize_columns_by = data["Header"]["SummarizeColumnsBy"]
-                        self.columns = ["ReportName",
-                                        "StartPeriod",
-                                        "EndPeriod",
-                                        "Category",
-                                        summarize_columns_by,
-                                        "value"]
-                        self.primary_key = ["ReportName", "StartPeriod", "EndPeriod", "Category", summarize_columns_by]
-                        self.data_out = self.parse_summarized(data["Rows"]["Row"], self.header, self.itr,
-                                                              summarize_columns_by)
+                        self.data_out = self.parse_summarized(data)
                         self.columns = self.arrange_header(self.columns)
                         self.output(self.endpoint, self.data_out, self.primary_key)
                 else:
-                    self.columns = [
-                        "ReportName",
-                        "StartPeriod",
-                        "EndPeriod"
-                    ]
+                    self.columns = ["ReportName", "StartPeriod", "EndPeriod"]
                     self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
-                    self.data_out = self.parse(
-                        data["Rows"]["Row"], self.header, self.itr)
+                    self.data_out = self.parse(data["Rows"]["Row"], self.header, self.itr)
                     self.columns = self.arrange_header(self.columns)
                     self.output(self.endpoint, self.data_out, self.primary_key)
             except (KeyError, ValueError) as ex:
@@ -98,9 +82,11 @@ class ReportMapping:
 
         if 'Header' in data:
             if 'Option' in data['Header']:
-                if 'NoReportData' in data['Header']['Option']:
-                    return data['Header']['Option']['NoReportData']
-        return False
+                for option in data['Header']['Option']:
+                    if option['Name'] == 'NoReportData':
+                        no_report_data = json.loads(option['Value'])
+                        if no_report_data:
+                            raise Exception("No data found in the report. Please check the selected period.")
 
     @staticmethod
     def construct_header(data):
@@ -214,68 +200,91 @@ class ReportMapping:
                     data_out.append(temp_row)
 
                 else:
-                    raise Exception(
-                        "No type found within the row. Please validate the data.")
+                    raise Exception("No type found within the row. Please validate the data.")
 
             return data_out
 
         except (KeyError, ValueError) as e:
             logging.warning(f"Parsing error - {type(e).__name__} occurred. Details: {e}")
 
-    def parse_summarized(self, data_in, row, itr, summarize_columns_by=None):
+    def parse_summarized(self, data):
         """
-        Main parser for rows for the new format
+        Parser for summarized data with expanded structure
         Params:
-        data_in     - input data for parser
-        row         - output json formatted row for one subsection within the table
-        itr         - record of the number of recursion
+        data - input data for parser in the new structure
         """
         try:
-            data_out = []
-            for i in data_in:
-                temp_row = copy.deepcopy(row)
-                temp_out = []
+            header = data['Header']
+            columns = data['Columns']['Column']
+            rows = data['Rows']['Row']
+            currency = header['Currency']
+            summarize_by = header['SummarizeColumnsBy']
 
-                if "type" not in i and "group" in i:
-                    temp_row["Category"] = i["group"]
-                    temp_out = self.parse_summarized(i["Rows"]["Row"], temp_row, itr + 1, summarize_columns_by)
-                    data_out.extend(temp_out)
+            # Initialize columns and primary keys
+            self.columns = ['ReportName', 'StartPeriod', 'EndPeriod', 'Time', 'Currency', 'summarize_columns_by',
+                            'summarize_columns_value', 'value']
+            self.primary_key = ['ReportName', 'StartPeriod', 'EndPeriod', 'Currency', 'summarize_columns_by',
+                                'summarize_columns_value']
 
-                elif i["type"] == "Section":
-                    if "Header" in i:
-                        temp_row["Category"] = i["Header"]["ColData"][0]["value"]
-                        temp_out = self.parse_summarized(i["Rows"]["Row"], temp_row, itr + 1, summarize_columns_by)
-                    elif "group" in i:
-                        temp_row["Category"] = i["group"]
-                        temp_out = [temp_row]
-                    data_out.extend(temp_out)
+            def parse_row(row_data, current_row, itr):
+                local_data_out = []  # Use local list to gather data within this function
+                for item in row_data:
+                    temp_row = copy.deepcopy(current_row)
+                    row_name = "Col_{0}".format(itr)
 
-                elif i["type"] == "Data" or "ColData" in i:
-                    temp_row["Category"] = i["ColData"][0]["value"]
-                    for idx, col in enumerate(i["ColData"][1:], 1):
-                        summarize_value = self.data["Columns"]["Column"][idx]["ColTitle"]
-                        value = col["value"]
-                        data_out.append({
-                            "ReportName": temp_row["ReportName"],
-                            "StartPeriod": temp_row["StartPeriod"],
-                            "EndPeriod": temp_row["EndPeriod"],
-                            "Category": temp_row["Category"],
-                            summarize_columns_by: summarize_value,
-                            "value": value
-                        })
+                    if 'Header' in item and 'ColData' in item['Header']:
+                        if row_name not in self.columns:
+                            self.columns.append(row_name)
+                            self.primary_key.append(row_name)
 
-                elif "Summary" in i:
-                    for idx, col in enumerate(i["Summary"]["ColData"], 1):
-                        summarize_value = self.data["Columns"]["Column"][idx]["ColTitle"]
-                        value = col["value"]
-                        data_out.append({
-                            "ReportName": temp_row["ReportName"],
-                            "StartPeriod": temp_row["StartPeriod"],
-                            "EndPeriod": temp_row["EndPeriod"],
-                            "Category": i["Summary"]["ColData"][0]["value"],
-                            summarize_columns_by: summarize_value,
-                            "value": value
-                        })
+                        temp_row[row_name] = item['Header']['ColData'][0]['value']
+                        temp_out = parse_row(item['Rows']['Row'], temp_row, itr + 1)
+                        local_data_out.extend(temp_out)
+
+                    elif 'ColData' in item:
+                        account_col = "Col_{0}".format(itr)
+                        for idx, col in enumerate(columns[1:], start=1):  # Skip the first column (Account)
+                            if account_col not in self.columns:
+                                self.columns.append(account_col)
+                                self.primary_key.append(account_col)
+
+                            summarize_column_value = col['ColTitle']
+                            temp_row = copy.deepcopy(current_row)
+                            temp_row[account_col] = item['ColData'][0]['value']
+                            temp_row['summarize_columns_value'] = summarize_column_value
+                            temp_row['value'] = item['ColData'][idx]['value'] if idx < len(item['ColData']) else ""
+                            temp_row['summarize_columns_by'] = summarize_by
+                            local_data_out.append(temp_row)
+
+                    elif 'Summary' in item:
+                        account_col = "Col_{0}".format(itr)
+                        for idx, col in enumerate(columns[1:], start=1):  # Skip the first column (Account)
+                            if account_col not in self.columns:
+                                self.columns.append(account_col)
+                                self.primary_key.append(account_col)
+
+                            summarize_column_value = col['ColTitle']
+                            temp_row = copy.deepcopy(current_row)
+                            temp_row[account_col] = item['Summary']['ColData'][0]['value']
+                            temp_row['summarize_columns_value'] = summarize_column_value
+                            temp_row['value'] = item['Summary']['ColData'][idx]['value'] if idx < len(
+                                item['Summary']['ColData']) else ""
+                            temp_row['summarize_columns_by'] = summarize_by
+                            local_data_out.append(temp_row)
+                    else:
+                        raise Exception("Unexpected data structure found within the row.")
+
+                return local_data_out  # Ensure the function always returns a list
+
+            initial_row = {
+                'ReportName': header['ReportName'],
+                'StartPeriod': header['StartPeriod'],
+                'EndPeriod': header['EndPeriod'],
+                'Time': header['Time'],
+                'Currency': currency
+            }
+
+            data_out = parse_row(rows, initial_row, 1)
 
             return data_out
 

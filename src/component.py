@@ -110,13 +110,12 @@ class Component(ComponentBase):
             if "**" in endpoint:
                 endpoint = endpoint.split("**")[0]
                 report_api_bool = True
+                # Change report columns only for profit and loss tested yet
+                if endpoint != "ProfitAndLoss":
+                    self.fetch_params = None
             else:
                 endpoint = endpoint
                 report_api_bool = False
-
-            # Change report columns only for profit and loss tested yet
-            if endpoint != "ProfitAndLoss":
-                self.fetch_params = None
 
             # Phase 1: Request
             # Handling Quickbooks Requests

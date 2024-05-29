@@ -65,6 +65,8 @@ class ReportMapping:
                               self.data_out, self.pk)
 
         else:  # Outputting tables which cannot parse
+            self.columns = ["ReportName", "StartPeriod", "EndPeriod"]
+            self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
 
             for item in self.columns:
                 self.data_out.append(self.header[item])

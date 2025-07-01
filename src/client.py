@@ -16,19 +16,10 @@ class QuickBooksClientException(Exception):
     pass
 
 
-GENERAL_LEDGER_COLUMNS = (
-    "klass_name,account_name,account_num,chk_print_state,create_by,create_date,"
-    "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name,"
-    "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name,"
-    "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt,"
-    "exh_rate,currency"
-)
-
 class QuickbooksClient:
     """
     QuickBooks Requests Handler
     """
-
 
     def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
         self.data_2 = None
@@ -275,7 +266,11 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = f"?columns={GENERAL_LEDGER_COLUMNS}"
+                date_param = "?columns=klass_name,account_name,account_num,chk_print_state,create_by,create_date," \
+                             "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name," \
+                             "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name," \
+                             "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt," \
+                             "credit_amt "
         else:
 
             startdate = (dateparser.parse(start_date)).strftime("%Y-%m-%d")
@@ -290,7 +285,13 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = date_param + f"&columns={GENERAL_LEDGER_COLUMNS}"
+                date_param = date_param + "&columns=dklass_name,account_name,account_num,chk_print_state," \
+                                          "create_by,create_date,cust_name,doc_num,emp_name,inv_date,is_adj," \
+                                          "is_ap_paid,is_ar_paid," \
+                                          "is_cleared,item_name,last_mod_by,last_mod_date,memo,name,quantity,rate," \
+                                          "split_acc,tx_date," \
+                                          "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name," \
+                                          "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt"
 
         url = "{0}/{1}/reports/{2}{3}".format(self.base_url,
                                               self.company_id, endpoint, date_param)

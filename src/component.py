@@ -94,11 +94,11 @@ class Component(ComponentBase):
                  "#access_token": self.access_token}
         })
 
-        quickbooks_client = QuickbooksClient(company_id=company_id, refresh_token=self.refresh_token,
+        quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=self.refresh_token,
                                             access_token=self.access_token, oauth=oauth, sandbox=sandbox)
 
         if not sandbox:
-            self.process_oauth_tokens(quickbooks_client)
+            self.process_oauth_tokens(quickbooks_param)
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
@@ -112,7 +112,7 @@ class Component(ComponentBase):
 
             # Phase 1: Request
             # Handling Quickbooks Requests
-            self.fetch(quickbooks_client=quickbooks_client, endpoint=endpoint, report_api_bool=report_api_bool)
+            self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool)
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping
@@ -120,7 +120,7 @@ class Component(ComponentBase):
             # input_data will be outputting Accrual Type
             # input_data_2 will be outputting Cash Type
             logging.info("Parsing API results...")
-            input_data = quickbooks_client.data
+            input_data = quickbooks_param.data
 
             # if there are no data
             # output blank
@@ -135,8 +135,8 @@ class Component(ComponentBase):
                         ReportMapping(endpoint=endpoint, data=input_data,
                                       query=self.start_date)
                     else:
-                        if endpoint in quickbooks_client.reports_required_accounting_type:
-                            input_data_2 = quickbooks_client.data_2
+                        if endpoint in quickbooks_param.reports_required_accounting_type:
+                            input_data_2 = quickbooks_param.data_2
                             ReportMapping(endpoint=endpoint, data=input_data, accounting_type="accrual")
                             ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
                         else:
@@ -246,10 +246,10 @@ class Component(ComponentBase):
                                 headers=headers)
         response.raise_for_status()
 
-    def fetch(self, quickbooks_client, endpoint, report_api_bool, query="", params=None):
+    def fetch(self, quickbooks_param, endpoint, report_api_bool, query="", params=None):
         logging.info(f"Fetching endpoint {endpoint} with date rage: {self.start_date} - {self.end_date}")
         try:
-            quickbooks_client.fetch(
+            quickbooks_param.fetch(
                 endpoint=endpoint,
                 report_api_bool=report_api_bool,
                 start_date=self.start_date,

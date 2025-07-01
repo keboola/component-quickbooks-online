@@ -29,6 +29,7 @@ class QuickbooksClient:
     QuickBooks Requests Handler
     """
 
+
     def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
         self.data_2 = None
         self.data = None

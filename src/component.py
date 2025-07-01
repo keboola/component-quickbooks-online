@@ -95,7 +95,7 @@ class Component(ComponentBase):
         })
 
         quickbooks_client = QuickbooksClient(company_id=company_id, refresh_token=self.refresh_token,
-                                            access_token=self.access_token, oauth=oauth, sandbox=sandbox)
+                                             access_token=self.access_token, oauth=oauth, sandbox=sandbox)
 
         if not sandbox:
             self.process_oauth_tokens(quickbooks_client)

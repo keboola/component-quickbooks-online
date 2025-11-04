@@ -16,16 +16,12 @@ class ReportMapping:
     Parser dedicated for Report endpoint
     """
 
-    def __init__(self, endpoint, data, query='', accounting_type=''):
+    def __init__(self, endpoint, data, query="", accounting_type=""):
         # Parameters
         self.endpoint = endpoint
         self.data = data
         self.header = self.construct_header(data)
-        self.columns = [
-            "ReportName",
-            "StartPeriod",
-            "EndPeriod"
-        ]
+        self.columns = ["ReportName", "StartPeriod", "EndPeriod"]
         self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
         self.query = query
         self.accounting_type = accounting_type
@@ -33,44 +29,31 @@ class ReportMapping:
         self.data_out = []
 
         # Run
-        report_cant_parse = [
-            "CashFlow",
-            "ProfitAndLossDetail",
-            "TransactionList",
-            "GeneralLedger",
-            "TrialBalance"
-        ]
+        report_cant_parse = ["CashFlow", "ProfitAndLossDetail", "TransactionList", "GeneralLedger", "TrialBalance"]
 
         if endpoint not in report_cant_parse:
-
             try:
                 self.itr = 1
-                self.data_out = self.parse(
-                    data["Rows"]["Row"], self.header, self.itr)
+                self.data_out = self.parse(data["Rows"]["Row"], self.header, self.itr)
                 self.columns = self.arrange_header(self.columns)
                 self.output(self.endpoint, self.data_out, self.primary_key)
             except (KeyError, ValueError):
-                logging.warning(
-                    "Report contains no data. Please check if the selected period is correct.")
+                logging.warning("Report contains no data. Please check if the selected period is correct.")
 
         elif endpoint == "CustomQuery":
-
             self.columns = ["query", "value"]
             self.data_out.append(self.columns)
             self.data_out.append("{0}".format(json.dumps(data)))
             self.pk = []
-            self.output_1cell(self.endpoint, self.columns,
-                              self.data_out, self.pk)
+            self.output_1cell(self.endpoint, self.columns, self.data_out, self.pk)
 
         else:  # Outputting tables which cannot parse
-
             for item in self.columns:
                 self.data_out.append(self.header[item])
 
             self.data_out.append("{0}".format(json.dumps(data)))
             self.columns.append("value")
-            self.output_1cell(self.endpoint, self.columns,
-                              self.data_out, self.primary_key)
+            self.output_1cell(self.endpoint, self.columns, self.data_out, self.primary_key)
 
     @staticmethod
     def construct_header(data):
@@ -80,17 +63,15 @@ class ReportMapping:
         """
 
         if "Header" not in data:
-
             raise Exception("Header is missing. Unable to parse request.")
 
         else:
-
             temp = data["Header"]
             json_out = {
                 "Time": temp["Time"],
                 "ReportName": temp["ReportName"],
                 "StartPeriod": temp["StartPeriod"],
-                "EndPeriod": temp["EndPeriod"]
+                "EndPeriod": temp["EndPeriod"],
             }
 
         return json_out
@@ -103,9 +84,9 @@ class ReportMapping:
 
         if columns.index("value") != (len(columns) - 1):
             # If "value" is not at the end of the row index
-            columns.remove('value')
+            columns.remove("value")
 
-        if 'value' not in columns:
+        if "value" not in columns:
             # append the value back into the column if it does not exist
             columns.append("value")
 
@@ -128,7 +109,6 @@ class ReportMapping:
                 row_name = "Col_{0}".format(itr)
 
                 if ("type" not in i) and ("group" in i):
-
                     if row_name not in self.columns:
                         self.columns.append(row_name)
                         self.primary_key.append(row_name)
@@ -141,7 +121,6 @@ class ReportMapping:
                     data_out = data_out + temp_out
 
                 elif i["type"] == "Section":
-
                     if row_name not in self.columns:
                         self.columns.append(row_name)
                         self.primary_key.append(row_name)
@@ -153,13 +132,11 @@ class ReportMapping:
                         temp_out = self.parse(i["Rows"]["Row"], row, itr + 1)
 
                     elif "group" in i:
-
                         # Column name
                         row[row_name] = i["group"]
 
                         # Row value , assuming no more recursion
-                        row["Col_{0}".format(
-                            itr + 1)] = i["Summary"]["ColData"][0]["value"]
+                        row["Col_{0}".format(itr + 1)] = i["Summary"]["ColData"][0]["value"]
                         row["value"] = i["Summary"]["ColData"][1]["value"]
                         temp_out = [row]
 
@@ -170,7 +147,6 @@ class ReportMapping:
                     data_out = data_out + temp_out  # Append data back to section
 
                 elif (i["type"] == "Data") or ("ColData" in i):
-
                     if row_name not in self.columns:
                         self.columns.append(row_name)
                         self.primary_key.append(row_name)
@@ -184,8 +160,7 @@ class ReportMapping:
                     data_out.append(temp_row)
 
                 else:
-                    raise Exception(
-                        "No type found within the row. Please validate the data.")
+                    raise Exception("No type found within the row. Please validate the data.")
 
             return data_out
 
@@ -200,18 +175,15 @@ class ReportMapping:
 
         file = DEFAULT_FILE_DESTINATION + str(file_name) + ".manifest"
 
-        manifest_template = {
-            "incremental": bool(True)
-        }
+        manifest_template = {"incremental": bool(True)}
 
         manifest = manifest_template
         manifest["primary_key"] = primary_key
 
         try:
-            with open(file, 'w') as file_out:
+            with open(file, "w") as file_out:
                 json.dump(manifest, file_out)
-                logging.info(
-                    "Output manifest file ({0}) produced.".format(file_name))
+                logging.info("Output manifest file ({0}) produced.".format(file_name))
         except Exception as e:
             logging.error("Could not produce output file manifest.")
             logging.error(e)
@@ -222,7 +194,7 @@ class ReportMapping:
         """
 
         temp_df = pd.DataFrame(data)
-        if self.accounting_type == '':
+        if self.accounting_type == "":
             filename = endpoint + ".csv"
         else:
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
@@ -230,8 +202,7 @@ class ReportMapping:
         logging.info("Outputting {0}...".format(filename))
         file_out_path = DEFAULT_FILE_DESTINATION + filename
         print(f"Saving file to: {file_out_path}")
-        temp_df.to_csv(file_out_path,
-                       index=False, columns=self.columns)
+        temp_df.to_csv(file_out_path, index=False, columns=self.columns)
         self.produce_manifest(filename, pk)
 
     def output_1cell(self, endpoint, columns, data, pk):
@@ -240,7 +211,7 @@ class ReportMapping:
         """
 
         # Construct output filename
-        if self.accounting_type == '':
+        if self.accounting_type == "":
             filename = endpoint + ".csv"
         else:
             filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)

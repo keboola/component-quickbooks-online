@@ -18,7 +18,6 @@ class Mapping:
     """
 
     def __init__(self, endpoint, data):
-
         self.endpoint = endpoint
         self.mapping = self.mapping_check(self.endpoint)
         self.out_file = {self.endpoint: []}
@@ -35,7 +34,7 @@ class Mapping:
         """
         Selecting the Right Mapping for the specified endpoint
         """
-        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "mappings.json"), 'r') as f:
+        with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "mappings.json"), "r") as f:
             out = json.load(f)
         f.close()
         return out[endpoint]
@@ -87,7 +86,6 @@ class Mapping:
                 header = mapping[column]["mapping"]["destination"]
 
             elif mapping[column]["type"] == "table":
-
                 # Setting up table parameters,
                 # mappings and values for parsing the nested table
                 mapping_name = column
@@ -115,18 +113,13 @@ class Mapping:
 
                 # Verify if the sub-table exist in the root table
                 if sub_table_exist and sub_table_row_exist:
-
                     # Setting up nested table primary key
                     # Using current table id to create unique pk with md5
                     string_of_pk = ""  # Concat all the PK as a string # noqa
                     # Iterate through all the pk
-                    sub_table_pk = mapping[column]["destination"] + \
-                        "-"+str(uuid.uuid4().hex)
+                    sub_table_pk = mapping[column]["destination"] + "-" + str(uuid.uuid4().hex)
 
-                    mapping_in["parent_table"] = {
-                        "type": "pk",
-                        "value": sub_table_pk
-                    }
+                    mapping_in["parent_table"] = {"type": "pk", "value": sub_table_pk}
 
                     # Loop nested table
                     self._parse_table(sub_table_name, mapping_in, data_in)
@@ -143,7 +136,6 @@ class Mapping:
             # Sub table's Primary Key
             # Source: injected new property when new table is found in the mapping
             elif mapping[column]["type"] == "pk":
-
                 header = column
                 value = mapping[column]["value"]
 
@@ -176,31 +168,23 @@ class Mapping:
 
         # If table_name does not exist in the PK list
         if table_name not in self.out_file_pk_raw:
-
             self.out_file_pk_raw[table_name] = []
             self.out_file_pk[table_name] = []
 
         for column in mapping:
-
             # Column type is "column"
             if mapping[column]["type"] == "column":
-
                 # Search if the primaryKey property is within the mapping configuration
                 if "primaryKey" in mapping[column]["mapping"]:
-
                     # Confirm if the primary key tab is true
                     if mapping[column]["mapping"]["primaryKey"]:
-
                         self.out_file_pk_raw[table_name].append(column)
-                        self.out_file_pk[table_name].append(
-                            mapping[column]["mapping"]["destination"])
+                        self.out_file_pk[table_name].append(mapping[column]["mapping"]["destination"])
 
             # Column type is "table"
             if mapping[column]["type"] == "table":
-
                 # Recursively run the tableMapping
-                self.get_primary_key(
-                    table_name=mapping[column]["destination"], mapping=mapping[column]["tableMapping"])
+                self.get_primary_key(table_name=mapping[column]["destination"], mapping=mapping[column]["tableMapping"])
 
     @staticmethod
     def produce_manifest(file_name, primary_key):
@@ -208,7 +192,7 @@ class Mapping:
         Dummy function to return header per file type.
         """
 
-        file = "/data/out/tables/"+str(file_name)+".manifest"
+        file = "/data/out/tables/" + str(file_name) + ".manifest"
         logging.info("Manifest output: {0}".format(file))
 
         manifest_template = {
@@ -227,7 +211,7 @@ class Mapping:
         # manifest["primary_key"] = primary_key
 
         try:
-            with open(file, 'w') as file_out:
+            with open(file, "w") as file_out:
                 json.dump(manifest, file_out)
                 # logging.info("Output manifest file ({0}) produced.".format(file_name))
         except Exception as e:
@@ -246,9 +230,8 @@ class Mapping:
         out_file = self.out_file
 
         for file in out_file:
-
             out_df = pd.DataFrame(out_file[file])
-            file_dest = DEFAULT_FILE_DESTINATION+file+".csv"
+            file_dest = DEFAULT_FILE_DESTINATION + file + ".csv"
             out_df.to_csv(file_dest, index=False)
             logging.info("Table output: {0}...".format(file_dest))
 

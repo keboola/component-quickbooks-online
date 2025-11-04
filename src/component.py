@@ -32,9 +32,6 @@ KEY_SANDBOX = "sandbox"
 # component will fail with readable message on initialization.
 REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINTS, KEY_REPORTS, KEY_GROUP_DESTINATION]
 
-# QuickBooks Parameters
-BASE_URL = "https://quickbooks.api.intuit.com"
-
 
 class Component(ComponentBase):
     def __init__(self):
@@ -105,8 +102,7 @@ class Component(ComponentBase):
             sandbox=sandbox,
         )
 
-        if not sandbox:
-            self.process_oauth_tokens(quickbooks_param)
+        self.process_oauth_tokens(quickbooks_param)
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:

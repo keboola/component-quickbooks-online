@@ -14,7 +14,7 @@ from dateutil.relativedelta import relativedelta
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
 
-URL_SUFFIXES = {"CURRENT_STACK": os.environ.get('KBC_STACKID', 'connection.keboola.com').replace('connection', '')}
+URL_SUFFIX = os.environ.get('KBC_STACKID', 'connection.keboola.com').replace('connection.', '')
 
 # configuration variables
 KEY_COMPANY_ID = 'companyid'
@@ -197,8 +197,7 @@ class Component(ComponentBase):
                      "#access_token": encrypted_access_token}
             }}
         try:
-            self.update_config_state(region="CURRENT_STACK",
-                                     component_id=self.environment_variables.component_id,
+            self.update_config_state(component_id=self.environment_variables.component_id,
                                      configurationId=self.environment_variables.config_id,
                                      state=new_state,
                                      branch_id=self.environment_variables.branch_id)
@@ -215,7 +214,7 @@ class Component(ComponentBase):
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
-        url = "https://encryption.keboola.com/encrypt"
+        url = f"https://encryption.{URL_SUFFIX}.com/encrypt"
         params = {
             "componentId": self.environment_variables.component_id,
             "projectId": self.environment_variables.project_id,
@@ -231,11 +230,11 @@ class Component(ComponentBase):
         return response.text
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
-    def update_config_state(self, region, component_id, configurationId, state, branch_id='default'):
+    def update_config_state(self, component_id, configurationId, state, branch_id='default'):
         if not branch_id:
             branch_id = 'default'
 
-        url = f'https://connection{URL_SUFFIXES[region]}/v2/storage/branch/{branch_id}' \
+        url = f'https://connection.{URL_SUFFIX}/v2/storage/branch/{branch_id}' \
               f'/components/{component_id}/configs/' \
               f'{configurationId}/state'
 

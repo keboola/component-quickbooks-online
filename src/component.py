@@ -154,8 +154,8 @@ class Component(ComponentBase):
 
         statefile = self.get_state_file()
         if statefile.get("tokens", {}).get("ts"):
-            ts_oauth = datetime.datetime.strptime(oauth["created"], "%Y-%m-%dT%H:%M:%S.%fZ")
-            ts_statefile = datetime.datetime.strptime(statefile["tokens"]["ts"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            ts_oauth = datetime.datetime.fromisoformat(oauth["created"])
+            ts_statefile = datetime.datetime.fromisoformat(statefile["tokens"]["ts"])
 
             if ts_statefile > ts_oauth:
                 refresh_token = statefile["tokens"].get("#refresh_token")

@@ -26,7 +26,6 @@ KEY_END_DATE = "end_date"
 KEY_GROUP_DESTINATION = "destination"
 KEY_LOAD_TYPE = "load_type"
 KEY_SUMMARIZE_COLUMN_BY = "summarize_column_by"
-KEY_SANDBOX = "sandbox"
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -69,7 +68,8 @@ class Component(ComponentBase):
         oauth = self.configuration.oauth_credentials
         self.refresh_token, self.access_token = self.get_tokens(oauth)
 
-        sandbox = self.configuration.parameters.get(KEY_SANDBOX, False)
+        sandbox = self.environment_variables.component_id == "keboola.ex-quickbooks-online-sandbox"
+
         if sandbox:
             logging.info("Sandbox environment enabled.")
 

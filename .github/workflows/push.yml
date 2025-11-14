@@ -4,6 +4,7 @@ concurrency: ci-${{ github.ref }} # to avoid tag collisions in the ECR
 env:
   DOCKERHUB_USER: "keboolabot"
   KBC_DEVELOPERPORTAL_APP: "keboola.ex-quickbooks-online"
+  KBC_DEVELOPERPORTAL_APP_SANDBOX: "keboola.ex-quickbooks-online-sandbox"
   KBC_DEVELOPERPORTAL_VENDOR: "keboola"
   KBC_DEVELOPERPORTAL_USERNAME: "keboola+ComponentFactory_CI"
 
@@ -45,6 +46,17 @@ jobs:
       with:
         vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
         app_id: ${{ env.KBC_DEVELOPERPORTAL_APP }}
+        username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
+        password: ${{ secrets.KBC_DEVELOPERPORTAL_PASSWORD }}
+        tag: ${{ steps.tag.outputs.app_image_tag }}
+        push_latest: ${{ steps.tag.outputs.is_semantic_tag }}
+        source_image: ${{ env.KBC_DEVELOPERPORTAL_APP }}
+
+    - name: Push image to ECR Stage
+      uses: keboola/action-push-to-ecr@master
+      with:
+        vendor: ${{ env.KBC_DEVELOPERPORTAL_VENDOR }}
+        app_id: ${{ env.KBC_DEVELOPERPORTAL_APP_SANDBOX }}
         username: ${{ env.KBC_DEVELOPERPORTAL_USERNAME }}
         password: ${{ secrets.KBC_DEVELOPERPORTAL_PASSWORD }}
         tag: ${{ steps.tag.outputs.app_image_tag }}

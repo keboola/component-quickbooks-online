@@ -14,30 +14,25 @@ from dateutil.relativedelta import relativedelta
 from keboola.component.base import ComponentBase
 from keboola.component.exceptions import UserException  # noqa
 
-URL_SUFFIXES = {"CURRENT_STACK": os.environ.get('KBC_STACKID', 'connection.keboola.com').replace('connection', '')}
+URL_SUFFIX = os.environ.get("KBC_STACKID", "connection.keboola.com").replace("connection.", "")
 
 # configuration variables
-KEY_COMPANY_ID = 'companyid'
-KEY_ENDPOINTS = 'endpoints'
-KEY_REPORTS = 'reports'
-GROUP_DATE_SETTINGS = 'date_settings'
-KEY_START_DATE = 'start_date'
-KEY_END_DATE = 'end_date'
-KEY_GROUP_DESTINATION = 'destination'
-KEY_LOAD_TYPE = 'load_type'
-KEY_SUMMARIZE_COLUMN_BY = 'summarize_column_by'
-KEY_SANDBOX = 'sandbox'
+KEY_COMPANY_ID = "companyid"
+KEY_ENDPOINTS = "endpoints"
+KEY_REPORTS = "reports"
+GROUP_DATE_SETTINGS = "date_settings"
+KEY_START_DATE = "start_date"
+KEY_END_DATE = "end_date"
+KEY_GROUP_DESTINATION = "destination"
+KEY_LOAD_TYPE = "load_type"
+KEY_SUMMARIZE_COLUMN_BY = "summarize_column_by"
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
 REQUIRED_PARAMETERS = [KEY_COMPANY_ID, KEY_ENDPOINTS, KEY_REPORTS, KEY_GROUP_DESTINATION]
 
-# QuickBooks Parameters
-BASE_URL = "https://quickbooks.api.intuit.com"
-
 
 class Component(ComponentBase):
-
     def __init__(self):
         super().__init__()
         self.summarize_column_by = None
@@ -68,12 +63,13 @@ class Component(ComponentBase):
         self.start_date = self.process_date(start_date)
         self.end_date = self.process_date(end_date)
 
-        logging.info(f'Company ID: {company_id}')
+        logging.info(f"Company ID: {company_id}")
 
         oauth = self.configuration.oauth_credentials
         self.refresh_token, self.access_token = self.get_tokens(oauth)
 
-        sandbox = self.configuration.parameters.get(KEY_SANDBOX, False)
+        sandbox = self.environment_variables.component_id == "keboola.ex-quickbooks-online-sandbox"
+
         if sandbox:
             logging.info("Sandbox environment enabled.")
 
@@ -84,25 +80,32 @@ class Component(ComponentBase):
             self.incremental = False
         logging.info(f"Load type incremental set to: {self.incremental}")
 
-        self.summarize_column_by = params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(
-            KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
+        self.summarize_column_by = (
+            params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
+        )
 
-        self.write_state_file({
-            "tokens":
-                {"ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                 "#refresh_token": self.refresh_token,
-                 "#access_token": self.access_token}
-        })
+        self.write_state_file(
+            {
+                "tokens": {
+                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "#refresh_token": self.refresh_token,
+                    "#access_token": self.access_token,
+                }
+            }
+        )
 
-        quickbooks_param = QuickbooksClient(company_id=company_id, refresh_token=self.refresh_token,
-                                            access_token=self.access_token, oauth=oauth, sandbox=sandbox)
+        quickbooks_param = QuickbooksClient(
+            company_id=company_id,
+            refresh_token=self.refresh_token,
+            access_token=self.access_token,
+            oauth=oauth,
+            sandbox=sandbox,
+        )
 
-        if not sandbox:
-            self.process_oauth_tokens(quickbooks_param)
+        self.process_oauth_tokens(quickbooks_param)
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
-
             if "**" in endpoint:
                 endpoint = endpoint.split("**")[0]
                 report_api_bool = True
@@ -127,13 +130,11 @@ class Component(ComponentBase):
             if len(input_data) == 0:
                 pass
             else:
-                logging.info(
-                    "Report API Template Enable: {0}".format(report_api_bool))
+                logging.info("Report API Template Enable: {0}".format(report_api_bool))
                 if report_api_bool:
                     if endpoint == "CustomQuery":
                         # Not implemented
-                        ReportMapping(endpoint=endpoint, data=input_data,
-                                      query=self.start_date)
+                        ReportMapping(endpoint=endpoint, data=input_data, query=self.start_date)
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
                             input_data_2 = quickbooks_param.data_2
@@ -145,7 +146,6 @@ class Component(ComponentBase):
                     Mapping(endpoint=endpoint, data=input_data)
 
     def get_tokens(self, oauth):
-
         try:
             refresh_token = oauth["data"]["refresh_token"]
             access_token = oauth["data"]["access_token"]
@@ -154,8 +154,8 @@ class Component(ComponentBase):
 
         statefile = self.get_state_file()
         if statefile.get("tokens", {}).get("ts"):
-            ts_oauth = datetime.datetime.strptime(oauth["created"], "%Y-%m-%dT%H:%M:%S.%fZ")
-            ts_statefile = datetime.datetime.strptime(statefile["tokens"]["ts"], "%Y-%m-%dT%H:%M:%S.%fZ")
+            ts_oauth = datetime.datetime.fromisoformat(oauth["created"])
+            ts_statefile = datetime.datetime.fromisoformat(statefile["tokens"]["ts"])
 
             if ts_statefile > ts_oauth:
                 refresh_token = statefile["tokens"].get("#refresh_token")
@@ -191,59 +191,60 @@ class Component(ComponentBase):
 
         new_state = {
             "component": {
-                "tokens":
-                    {"ts": datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
-                     "#refresh_token": encrypted_refresh_token,
-                     "#access_token": encrypted_access_token}
-            }}
+                "tokens": {
+                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "#refresh_token": encrypted_refresh_token,
+                    "#access_token": encrypted_access_token,
+                }
+            }
+        }
         try:
-            self.update_config_state(region="CURRENT_STACK",
-                                     component_id=self.environment_variables.component_id,
-                                     configurationId=self.environment_variables.config_id,
-                                     state=new_state,
-                                     branch_id=self.environment_variables.branch_id)
+            self.update_config_state(
+                component_id=self.environment_variables.component_id,
+                configurationId=self.environment_variables.config_id,
+                state=new_state,
+                branch_id=self.environment_variables.branch_id,
+            )
         except requests.exceptions.RequestException:
-            logging.warning("Storage API (update config state)"
-                            "is unavailable. Skipping token save at the beginning of the run.")
+            logging.warning(
+                "Storage API (update config state)is unavailable. Skipping token save at the beginning of the run."
+            )
             return
 
     def _get_storage_token(self) -> str:
-        token = self.configuration.parameters.get('#storage_token') or self.environment_variables.token
+        token = self.configuration.parameters.get("#storage_token") or self.environment_variables.token
         if not token:
             raise UserException("Cannot retrieve storage token from env variables and/or config.")
         return token
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
-        url = "https://encryption.keboola.com/encrypt"
+        url = f"https://encryption.{URL_SUFFIX}.com/encrypt"
         params = {
             "componentId": self.environment_variables.component_id,
             "projectId": self.environment_variables.project_id,
-            "configId": self.environment_variables.config_id
+            "configId": self.environment_variables.config_id,
         }
         headers = {"Content-Type": "text/plain"}
 
-        response = requests.post(url,
-                                 data=token,
-                                 params=params,
-                                 headers=headers)
+        response = requests.post(url, data=token, params=params, headers=headers)
         response.raise_for_status()
         return response.text
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
-    def update_config_state(self, region, component_id, configurationId, state, branch_id='default'):
+    def update_config_state(self, component_id, configurationId, state, branch_id="default"):
         if not branch_id:
-            branch_id = 'default'
+            branch_id = "default"
 
-        url = f'https://connection{URL_SUFFIXES[region]}/v2/storage/branch/{branch_id}' \
-              f'/components/{component_id}/configs/' \
-              f'{configurationId}/state'
+        url = (
+            f"https://connection.{URL_SUFFIX}/v2/storage/branch/{branch_id}"
+            f"/components/{component_id}/configs/"
+            f"{configurationId}/state"
+        )
 
-        parameters = {'state': json.dumps(state)}
-        headers = {'Content-Type': 'application/x-www-form-urlencoded', 'X-StorageApi-Token': self._get_storage_token()}
-        response = requests.put(url,
-                                data=parameters,
-                                headers=headers)
+        parameters = {"state": json.dumps(state)}
+        headers = {"Content-Type": "application/x-www-form-urlencoded", "X-StorageApi-Token": self._get_storage_token()}
+        response = requests.put(url, data=parameters, headers=headers)
         response.raise_for_status()
 
     def fetch(self, quickbooks_param, endpoint, report_api_bool, query="", params=None):
@@ -255,7 +256,7 @@ class Component(ComponentBase):
                 start_date=self.start_date,
                 end_date=self.end_date,
                 query=query if query else "",
-                params=params
+                params=params,
             )
         except QuickBooksClientException as e:
             raise UserException(e) from e
@@ -266,7 +267,7 @@ class Component(ComponentBase):
         if not dt:
             return None
 
-        dt_format = '%Y-%m-%d'
+        dt_format = "%Y-%m-%d"
         today = date.today()
         if dt == "PrevMonthStart":
             result = today.replace(day=1) - relativedelta(months=1)
@@ -276,8 +277,9 @@ class Component(ComponentBase):
             try:
                 date.fromisoformat(dt)
             except ValueError:
-                raise UserException(f"Date {dt} is invalid. Valid types are: "
-                                    f"PrevMonthStart, PrevMonthEnd or YYYY-MM-DD")
+                raise UserException(
+                    f"Date {dt} is invalid. Valid types are: PrevMonthStart, PrevMonthEnd or YYYY-MM-DD"
+                )
             return dt
         return result.strftime(dt_format)
 

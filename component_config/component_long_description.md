@@ -1,2 +1,1 @@
-Testing functional sample extractor for purposes of the python component template. 
-Implements partial Hubspot extractor using the public sandbox token.
+This extractor enables you to extract accounting data and financial reports from your QuickBooks Online account. It supports a comprehensive set of accounting endpoints (accounts, bills, invoices, payments, vendors, customers, etc.) and financial reports (balance sheet, profit and loss, cash flow, general ledger, trial balance, etc.). OAuth 2.0 authentication ensures secure access to your QuickBooks data, and you can specify date ranges for incremental data extraction. The component supports both cash and accrual accounting types for relevant reports.

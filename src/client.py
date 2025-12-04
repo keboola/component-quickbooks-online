@@ -160,7 +160,7 @@ class QuickbooksClient:
             if params is None:
                 params = {}
             if "minorversion" not in params:
-                params["minorversion"] = "65"
+                params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
             data = requesting.get(url, headers=headers, params=params)
 

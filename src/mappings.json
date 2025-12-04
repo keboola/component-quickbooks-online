@@ -1475,6 +1475,37 @@
                     }
                 }
             }
+        },
+        "CustomField": {
+            "type": "table",
+            "destination": "Invoice-CustomField",
+            "tableMapping": {
+                "DefinitionId": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Definition_ID",
+                        "primaryKey": true
+                    }
+                },
+                "Name": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Name"
+                    }
+                },
+                "Type": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "Type"
+                    }
+                },
+                "StringValue": {
+                    "type": "column",
+                    "mapping": {
+                        "destination": "StringValue"
+                    }
+                }
+            }
         }
     },
     "Item": {

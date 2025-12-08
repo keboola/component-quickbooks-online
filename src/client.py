@@ -181,53 +181,53 @@ class QuickbooksClient:
 
     def data_request(self):
         """
-        Handles Request Parameters and Pagination
+        Handles Request Parameters and Pagination without using COUNT()
         """
 
         num_of_run = 0
 
-        def data_request(self):
-            """
-            Handles Request Parameters and Pagination without using COUNT()
-            """
+        while True:
+            # Query Parameters
+            if self.endpoint == "Class":
+                query = (
+                    "SELECT * FROM {0} WHERE Active IN (true, false) "
+                    "STARTPOSITION {1} MAXRESULTS {2}"
+                ).format(self.endpoint, self.startposition, self.maxresults)
+            else:
+                query = (
+                    "SELECT * FROM {0} STARTPOSITION {1} MAXRESULTS {2}"
+                ).format(self.endpoint, self.startposition, self.maxresults)
 
-            num_of_run = 0
+            logging.info("Request Query: {0}".format(query))
+            encoded_query = self.url_encode(query)
+            url = f"{self.base_url}/{self.company_id}/query?query={encoded_query}"
 
-            while True:
-                # Query Parameters
-                if self.endpoint == "Class":
-                    query = (
-                        "SELECT * FROM {0} WHERE Active IN (true, false) "
-                        "STARTPOSITION {1} MAXRESULTS {2}"
-                    ).format(self.endpoint, self.startposition, self.maxresults)
-                else:
-                    query = (
-                        "SELECT * FROM {0} STARTPOSITION {1} MAXRESULTS {2}"
-                    ).format(self.endpoint, self.startposition, self.maxresults)
+            # Execute request
+            results = self._request(url)
 
-                logging.info("Request Query: {0}".format(query))
-                encoded_query = self.url_encode(query)
-                url = f"{self.base_url}/{self.company_id}/query?query={encoded_query}"
+            # Check for faults
+            if "fault" in results or "Fault" in results:
+                raise QuickBooksClientException(results)
 
-                results = self._request(url)
+            # Extract rows safely
+            rows = results.get("QueryResponse", {}).get(self.endpoint, [])
 
-                if "fault" in results or "Fault" in results:
-                    raise QuickBooksClientException(results)
+            # If no rows returned → end pagination
+            if not rows:
+                break
 
-                rows = results.get("QueryResponse", {}).get(self.endpoint, [])
+            # Append results
+            self.data.extend(rows)
 
-                if not rows:
-                    break
+            # Update counters
+            num_of_run += 1
+            self.startposition += self.maxresults
 
-                self.data.extend(rows)
+            # Last page
+            if len(rows) < self.maxresults:
+                break
 
-                num_of_run += 1
-                self.startposition += self.maxresults
-
-                if len(rows) < self.maxresults:
-                    break
-
-            logging.info("Number of Requests: {0}".format(num_of_run))
+        logging.info("Number of Requests: {0}".format(num_of_run))
 
     def custom_request(self, input_query):
         """

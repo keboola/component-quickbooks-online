@@ -90,12 +90,7 @@ class QuickbooksClient:
                     raise QuickBooksClientException(f"Start date and End date are required for {endpoint} reports.")
                 self.report_request(endpoint, start_date, end_date, params)
         else:
-            self.count = self.get_count()  # total count of records for pagination
-            if self.count == 0:
-                logging.info("There are no returns for {0}".format(self.endpoint))
-                self.data = []
-            else:
-                self.data_request()
+            self.data_request()
 
     @backoff.on_exception(backoff.expo, HTTPError, max_tries=3)
     def refresh_access_token(self):
@@ -191,40 +186,48 @@ class QuickbooksClient:
 
         num_of_run = 0
 
-        while self.startposition <= self.count:
-            # Query Parameters
-            # Custom query for Class endpoint
-            if self.endpoint == "Class":
-                query = "SELECT * FROM {0} WHERE Active IN (true, false) STARTPOSITION {1} MAXRESULTS {2}".format(
-                    self.endpoint, self.startposition, self.maxresults
-                )
+        def data_request(self):
+            """
+            Handles Request Parameters and Pagination without using COUNT()
+            """
 
-            else:
-                query = "SELECT * FROM {0} STARTPOSITION {1} MAXRESULTS {2}".format(
-                    self.endpoint, self.startposition, self.maxresults
-                )
+            num_of_run = 0
 
-            logging.info("Request Query: {0}".format(query))
-            encoded_query = self.url_encode(query)
-            url = "{0}/{1}/query?query={2}".format(self.base_url, self.company_id, encoded_query)
+            while True:
+                # Query Parameters
+                if self.endpoint == "Class":
+                    query = (
+                        "SELECT * FROM {0} WHERE Active IN (true, false) "
+                        "STARTPOSITION {1} MAXRESULTS {2}"
+                    ).format(self.endpoint, self.startposition, self.maxresults)
+                else:
+                    query = (
+                        "SELECT * FROM {0} STARTPOSITION {1} MAXRESULTS {2}"
+                    ).format(self.endpoint, self.startposition, self.maxresults)
 
-            # Requests and concatenating results into class's data variable
-            results = self._request(url)
+                logging.info("Request Query: {0}".format(query))
+                encoded_query = self.url_encode(query)
+                url = f"{self.base_url}/{self.company_id}/query?query={encoded_query}"
 
-            # If API returns error, raise exception and terminate application
-            if "fault" in results or "Fault" in results:
-                raise Exception(results)
+                results = self._request(url)
 
-            data = results["QueryResponse"][self.endpoint]
+                if "fault" in results or "Fault" in results:
+                    raise QuickBooksClientException(results)
 
-            # Concatenate with exist extracted data
-            self.data = self.data + data
+                rows = results.get("QueryResponse", {}).get(self.endpoint, [])
 
-            # Handling pagination paramters
-            self.startposition += self.maxresults
-            num_of_run += 1
+                if not rows:
+                    break
 
-        logging.info("Number of Requests: {0}".format(num_of_run))
+                self.data.extend(rows)
+
+                num_of_run += 1
+                self.startposition += self.maxresults
+
+                if len(rows) < self.maxresults:
+                    break
+
+            logging.info("Number of Requests: {0}".format(num_of_run))
 
     def custom_request(self, input_query):
         """

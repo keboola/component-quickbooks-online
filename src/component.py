@@ -219,7 +219,7 @@ class Component(ComponentBase):
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
-        url = f"https://encryption.{URL_SUFFIX}.com/encrypt"
+        url = f"https://encryption.{URL_SUFFIX}/encrypt"
         params = {
             "componentId": self.environment_variables.component_id,
             "projectId": self.environment_variables.project_id,

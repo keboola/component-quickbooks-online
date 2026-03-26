@@ -72,11 +72,4 @@ Extractor's task is to help user to extract the data from QuickBooks online to K
     
 
 ## Support ##
-If the component is missing the endpoints or reports you are looking for, please submit a support ticket or feel free to contact me directly. 
-         
-
-## Contact Info ##
-Leo Chan  
-Vancouver, Canada (PST time)   
-Email: leo@keboola.com  
-Private: cleojanten@hotmail.com   
+If the component is missing the endpoints or reports you are looking for, please submit a support ticket or feel free to contact us via support form.

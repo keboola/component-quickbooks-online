@@ -157,6 +157,10 @@ class QuickbooksClient:
         request_success = False
         while not request_success:
             headers = {"Authorization": "Bearer " + self.access_token, "Accept": "application/json"}
+            if params is None:
+                params = {}
+            if "minorversion" not in params:
+                params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
             data = requesting.get(url, headers=headers, params=params)
 

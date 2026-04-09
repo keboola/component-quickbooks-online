@@ -162,7 +162,7 @@ class Component(ComponentBase):
         return refresh_token, access_token
 
     def _on_token_refresh(self, new_refresh_token: str, new_access_token: str) -> None:
-        """Callback invoked by the client whenever tokens are refreshed (including mid-run refreshes)."""
+        """Callback invoked by the client whenever tokens are refreshed during the initial token refresh."""
         self.refresh_token = new_refresh_token
         self.access_token = new_access_token
         self._save_tokens_to_state_file()

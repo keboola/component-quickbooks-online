@@ -21,7 +21,7 @@ class QuickbooksClient:
     QuickBooks Requests Handler
     """
 
-    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
+    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox, on_token_refresh=None):
         self.data_2 = None
         self.data = None
         self.app_key = oauth.appKey
@@ -38,6 +38,7 @@ class QuickbooksClient:
         self.access_token_refreshed = False
         self.new_refresh_token = False
         self.company_id = company_id
+        self.on_token_refresh = on_token_refresh
         self.reports_required_accounting_type = [
             "ProfitAndLoss",
             "ProfitAndLossDetail",
@@ -121,6 +122,8 @@ class QuickbooksClient:
         self.access_token = results["access_token"]
         self.refresh_token = results["refresh_token"]
         self.access_token_refreshed = True
+        if self.on_token_refresh:
+            self.on_token_refresh(self.refresh_token, self.access_token)
 
     def get_count(self):
         """
@@ -157,6 +160,10 @@ class QuickbooksClient:
         request_success = False
         while not request_success:
             headers = {"Authorization": "Bearer " + self.access_token, "Accept": "application/json"}
+            if params is None:
+                params = {}
+            if "minorversion" not in params:
+                params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
             data = requesting.get(url, headers=headers, params=params)
 

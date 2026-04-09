@@ -181,8 +181,9 @@ class Component(ComponentBase):
 
     def process_oauth_tokens(self, client) -> None:
         """Uses Quickbooks client to get new tokens and saves them using API if they have changed since the last run."""
+        original_refresh_token = self.refresh_token
         new_refresh_token, new_access_token = client.get_new_refresh_token()
-        if self.refresh_token != new_refresh_token:
+        if original_refresh_token != new_refresh_token:
             self.save_new_oauth_tokens(new_refresh_token, new_access_token)
             self.refresh_token = new_refresh_token
             self.access_token = new_access_token

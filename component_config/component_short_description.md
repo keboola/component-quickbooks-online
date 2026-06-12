@@ -1,1 +1,1 @@
-QuickBooks Online is a cloud-based accounting software for small and medium-sized businesses.
+Extracts accounting and report data from QuickBooks Online.

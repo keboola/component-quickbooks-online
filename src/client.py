@@ -93,9 +93,6 @@ class QuickbooksClient:
             self.count = self.get_count()  # total count of records for pagination
             if self.count == 0:
                 logging.info("There are no returns for {0}".format(self.endpoint))
-                self.data = []
-            else:
-                self.data_request()
 
     @backoff.on_exception(backoff.expo, HTTPError, max_tries=3)
     def refresh_access_token(self):
@@ -182,7 +179,8 @@ class QuickbooksClient:
 
     def data_request(self):
         """
-        Handles Request Parameters and Pagination
+        Generator that yields one page of records at a time.
+        This keeps memory usage constant regardless of total record count.
         """
 
         num_of_run = 0
@@ -204,7 +202,7 @@ class QuickbooksClient:
             encoded_query = self.url_encode(query)
             url = "{0}/{1}/query?query={2}".format(self.base_url, self.company_id, encoded_query)
 
-            # Requests and concatenating results into class's data variable
+            # Requests
             results = self._request(url)
 
             # If API returns error, raise exception and terminate application
@@ -213,10 +211,9 @@ class QuickbooksClient:
 
             data = results["QueryResponse"][self.endpoint]
 
-            # Concatenate with exist extracted data
-            self.data = self.data + data
+            yield data
 
-            # Handling pagination paramters
+            # Handling pagination parameters
             self.startposition += self.maxresults
             num_of_run += 1
 

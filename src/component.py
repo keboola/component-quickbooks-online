@@ -119,21 +119,16 @@ class Component(ComponentBase):
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping
-            # For different accounting_type,
-            # input_data will be outputting Accrual Type
-            # input_data_2 will be outputting Cash Type
             logging.info("Parsing API results...")
-            input_data = quickbooks_param.data
 
-            # if there are no data
-            # output blank
-            if len(input_data) == 0:
-                pass
-            else:
-                logging.info("Report API Template Enable: {0}".format(report_api_bool))
-                if report_api_bool:
+            if report_api_bool:
+                # Report endpoints: single response, no pagination
+                input_data = quickbooks_param.data
+                if len(input_data) == 0:
+                    pass
+                else:
+                    logging.info("Report API Template Enable: True")
                     if endpoint == "CustomQuery":
-                        # Not implemented
                         ReportMapping(endpoint=endpoint, data=input_data, query=self.start_date)
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
@@ -142,8 +137,13 @@ class Component(ComponentBase):
                             ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
                         else:
                             ReportMapping(endpoint=endpoint, data=input_data)
+            else:
+                # Data endpoints: stream page-by-page to keep memory constant
+                if quickbooks_param.count == 0:
+                    pass
                 else:
-                    Mapping(endpoint=endpoint, data=input_data)
+                    for page in quickbooks_param.data_request():
+                        Mapping(endpoint=endpoint, data=page, append=True)
 
     def get_tokens(self, oauth):
         try:

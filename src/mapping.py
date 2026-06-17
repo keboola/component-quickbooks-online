@@ -17,8 +17,9 @@ class Mapping:
     Handling Generic Ex Mapping
     """
 
-    def __init__(self, endpoint, data):
+    def __init__(self, endpoint, data, append=False):
         self.endpoint = endpoint
+        self.append = append
         self.mapping = self.mapping_check(self.endpoint)
         self.out_file = {self.endpoint: []}
         self.out_file_pk = {self.endpoint: []}  # destination name from mapping
@@ -232,7 +233,11 @@ class Mapping:
         for file in out_file:
             out_df = pd.DataFrame(out_file[file])
             file_dest = DEFAULT_FILE_DESTINATION + file + ".csv"
-            out_df.to_csv(file_dest, index=False)
+            if self.append:
+                file_exists = os.path.exists(file_dest)
+                out_df.to_csv(file_dest, mode="a", index=False, header=not file_exists)
+            else:
+                out_df.to_csv(file_dest, index=False)
             logging.info("Table output: {0}...".format(file_dest))
 
         # Outputting manifest file if incremental

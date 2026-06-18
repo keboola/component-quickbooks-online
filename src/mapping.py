@@ -1,3 +1,4 @@
+import csv
 import uuid
 import pandas as pd
 import json
@@ -12,13 +13,67 @@ DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")
 DEFAULT_FILE_DESTINATION = os.path.join(cwd_parent, "data/out/tables/")
 
 
+class TableStreamWriter:
+    """
+    Holds one open CSV writer per output table for the duration of a single endpoint's
+    pagination, so each table's header and column order are established once - on the
+    first page that produces rows for that table - and reused for every later page.
+
+    This is what lets the data endpoints stream: each page is parsed, appended through
+    this writer, and discarded, so peak memory stays at O(page_size) instead of growing
+    with the total record count.
+
+    The column set is taken from the first row of each table. The mapping (mappings.json)
+    drives parsing, so every row of a given table carries the exact same keys in the same
+    order - the first row is therefore the complete, correctly ordered header. We still
+    pass ``extrasaction="ignore"`` and ``restval=""`` as a safety net so an unexpected
+    key never shifts columns or raises.
+    """
+
+    def __init__(self, destination=DEFAULT_FILE_DESTINATION):
+        self.destination = destination
+        self._files = {}
+        self._writers = {}
+
+    def write_rows(self, table_name, rows):
+        if not rows:
+            return
+        for row in rows:
+            writer = self._get_writer(table_name, row)
+            writer.writerow(row)
+
+    def _get_writer(self, table_name, sample_row):
+        if table_name not in self._writers:
+            file_dest = self.destination + table_name + ".csv"
+            file_handle = open(file_dest, "w", newline="")
+            writer = csv.DictWriter(
+                file_handle,
+                fieldnames=list(sample_row.keys()),
+                extrasaction="ignore",
+                restval="",
+                lineterminator="\n",
+            )
+            writer.writeheader()
+            self._files[table_name] = file_handle
+            self._writers[table_name] = writer
+            logging.info("Streaming table output: {0}...".format(file_dest))
+        return self._writers[table_name]
+
+    def close(self):
+        for file_handle in self._files.values():
+            file_handle.close()
+        self._files.clear()
+        self._writers.clear()
+
+
 class Mapping:
     """
     Handling Generic Ex Mapping
     """
 
-    def __init__(self, endpoint, data):
+    def __init__(self, endpoint, data, writer=None):
         self.endpoint = endpoint
+        self.writer = writer
         self.mapping = self.mapping_check(self.endpoint)
         self.out_file = {self.endpoint: []}
         self.out_file_pk = {self.endpoint: []}  # destination name from mapping
@@ -223,17 +278,25 @@ class Mapping:
 
     def output(self):
         """
-        Output Data with its desired file name
+        Output Data with its desired file name.
+
+        When a streaming ``writer`` is supplied (the default for paginated data
+        endpoints) each table's rows are appended through it, so the full dataset is
+        never materialised in memory. Without a writer the legacy single-shot behaviour
+        is kept for backward compatibility.
         """
 
-        # Outputting files
         out_file = self.out_file
 
-        for file in out_file:
-            out_df = pd.DataFrame(out_file[file])
-            file_dest = DEFAULT_FILE_DESTINATION + file + ".csv"
-            out_df.to_csv(file_dest, index=False)
-            logging.info("Table output: {0}...".format(file_dest))
+        if self.writer is not None:
+            for table_name in out_file:
+                self.writer.write_rows(table_name, out_file[table_name])
+        else:
+            for file in out_file:
+                out_df = pd.DataFrame(out_file[file])
+                file_dest = DEFAULT_FILE_DESTINATION + file + ".csv"
+                out_df.to_csv(file_dest, index=False)
+                logging.info("Table output: {0}...".format(file_dest))
 
         # Outputting manifest file if incremental
         out_file_pk = self.out_file_pk  # noqa

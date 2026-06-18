@@ -21,7 +21,7 @@ class QuickbooksClient:
     QuickBooks Requests Handler
     """
 
-    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
+    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox, on_token_refresh=None):
         self.data_2 = None
         self.data = None
         self.app_key = oauth.appKey
@@ -38,6 +38,9 @@ class QuickbooksClient:
         self.access_token_refreshed = False
         self.new_refresh_token = False
         self.company_id = company_id
+        # Optional callback fired whenever the access/refresh token is rotated, so the
+        # caller can persist the new tokens immediately (QuickBooks rotates them).
+        self.on_token_refresh = on_token_refresh
         self.reports_required_accounting_type = [
             "ProfitAndLoss",
             "ProfitAndLossDetail",
@@ -90,12 +93,11 @@ class QuickbooksClient:
                     raise QuickBooksClientException(f"Start date and End date are required for {endpoint} reports.")
                 self.report_request(endpoint, start_date, end_date, params)
         else:
-            self.count = self.get_count()  # total count of records for pagination
+            # Data endpoints are streamed page-by-page by the caller via data_request().
+            # Here we only resolve the total record count used to drive pagination.
+            self.count = self.get_count()
             if self.count == 0:
                 logging.info("There are no returns for {0}".format(self.endpoint))
-                self.data = []
-            else:
-                self.data_request()
 
     @backoff.on_exception(backoff.expo, HTTPError, max_tries=3)
     def refresh_access_token(self):
@@ -121,6 +123,8 @@ class QuickbooksClient:
         self.access_token = results["access_token"]
         self.refresh_token = results["refresh_token"]
         self.access_token_refreshed = True
+        if self.on_token_refresh:
+            self.on_token_refresh(self.refresh_token, self.access_token)
 
     def get_count(self):
         """
@@ -182,7 +186,10 @@ class QuickbooksClient:
 
     def data_request(self):
         """
-        Handles Request Parameters and Pagination
+        Generator that yields one page of records (~maxresults) at a time.
+
+        Streaming pages instead of accumulating them keeps peak memory at O(page_size)
+        regardless of the total record count (SUPPORT-16682).
         """
 
         num_of_run = 0
@@ -213,10 +220,11 @@ class QuickbooksClient:
 
             data = results["QueryResponse"][self.endpoint]
 
-            # Concatenate with exist extracted data
-            self.data = self.data + data
+            # Yield this page so the caller can flush it to disk and release it,
+            # keeping memory usage constant instead of growing with total records.
+            yield data
 
-            # Handling pagination paramters
+            # Handling pagination parameters
             self.startposition += self.maxresults
             num_of_run += 1
 

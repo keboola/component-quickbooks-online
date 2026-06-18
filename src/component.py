@@ -5,7 +5,7 @@ import requests
 import backoff
 import json
 
-from mapping import Mapping
+from mapping import Mapping, TableStreamWriter
 from client import QuickbooksClient, QuickBooksClientException
 from report_mapping import ReportMapping
 from datetime import date
@@ -84,25 +84,21 @@ class Component(ComponentBase):
             params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
         )
 
-        self.write_state_file(
-            {
-                "tokens": {
-                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "#refresh_token": self.refresh_token,
-                    "#access_token": self.access_token,
-                }
-            }
-        )
-
         quickbooks_param = QuickbooksClient(
             company_id=company_id,
             refresh_token=self.refresh_token,
             access_token=self.access_token,
             oauth=oauth,
             sandbox=sandbox,
+            on_token_refresh=self._on_token_refresh,
         )
 
         self.process_oauth_tokens(quickbooks_param)
+
+        # Persist the (possibly rotated) tokens AFTER the refresh, not before. QuickBooks
+        # rotates the refresh token and immediately invalidates the previous one, so saving
+        # the stale pre-refresh tokens would break the next run (SUPPORT-15835).
+        self._save_tokens_to_state_file()
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
@@ -118,32 +114,39 @@ class Component(ComponentBase):
             self.fetch(quickbooks_param=quickbooks_param, endpoint=endpoint, report_api_bool=report_api_bool)
 
             # Phase 2: Mapping
-            # Translate Input JSON file into CSV with configured mapping
-            # For different accounting_type,
-            # input_data will be outputting Accrual Type
-            # input_data_2 will be outputting Cash Type
+            # Translate the API results into CSV using the configured mapping.
             logging.info("Parsing API results...")
-            input_data = quickbooks_param.data
 
-            # if there are no data
-            # output blank
-            if len(input_data) == 0:
-                pass
-            else:
-                logging.info("Report API Template Enable: {0}".format(report_api_bool))
-                if report_api_bool:
+            if report_api_bool:
+                # Report endpoints return a single, non-paginated response.
+                # For accounting-type reports: data = Accrual, data_2 = Cash.
+                input_data = quickbooks_param.data
+                if len(input_data) == 0:
+                    pass
+                else:
+                    logging.info("Report API Template Enable: {0}".format(report_api_bool))
                     if endpoint == "CustomQuery":
                         # Not implemented
                         ReportMapping(endpoint=endpoint, data=input_data, query=self.start_date)
+                    elif endpoint in quickbooks_param.reports_required_accounting_type:
+                        input_data_2 = quickbooks_param.data_2
+                        ReportMapping(endpoint=endpoint, data=input_data, accounting_type="accrual")
+                        ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
                     else:
-                        if endpoint in quickbooks_param.reports_required_accounting_type:
-                            input_data_2 = quickbooks_param.data_2
-                            ReportMapping(endpoint=endpoint, data=input_data, accounting_type="accrual")
-                            ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
-                        else:
-                            ReportMapping(endpoint=endpoint, data=input_data)
+                        ReportMapping(endpoint=endpoint, data=input_data)
+            else:
+                # Data endpoints are paginated: stream each page straight to disk through
+                # a shared writer and release it, so peak memory stays at O(page_size)
+                # instead of growing with the total record count (SUPPORT-16682).
+                if quickbooks_param.count == 0:
+                    pass
                 else:
-                    Mapping(endpoint=endpoint, data=input_data)
+                    writer = TableStreamWriter()
+                    try:
+                        for page in quickbooks_param.data_request():
+                            Mapping(endpoint=endpoint, data=page, writer=writer)
+                    finally:
+                        writer.close()
 
     def get_tokens(self, oauth):
         try:
@@ -168,14 +171,37 @@ class Component(ComponentBase):
 
         return refresh_token, access_token
 
+    def _on_token_refresh(self, new_refresh_token: str, new_access_token: str) -> None:
+        """Callback fired by the client the moment tokens are rotated, so the new tokens
+        are persisted to the state file immediately - even if the run fails afterwards."""
+        self.refresh_token = new_refresh_token
+        self.access_token = new_access_token
+        self._save_tokens_to_state_file()
+
+    def _save_tokens_to_state_file(self) -> None:
+        """Writes the current tokens to the output state file so they persist for the next run."""
+        self.write_state_file(
+            {
+                "tokens": {
+                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "#refresh_token": self.refresh_token,
+                    "#access_token": self.access_token,
+                }
+            }
+        )
+
     def process_oauth_tokens(self, client) -> None:
         """Uses Quickbooks client to get new tokens and saves them using API if they have changed since the last run."""
+        # Capture the token before the refresh: the on_token_refresh callback mutates
+        # self.refresh_token during get_new_refresh_token(), so comparing against
+        # self.refresh_token afterwards would always be False and skip the API save.
+        original_refresh_token = self.refresh_token
         new_refresh_token, new_access_token = client.get_new_refresh_token()
-        if self.refresh_token != new_refresh_token:
+        if original_refresh_token != new_refresh_token:
             self.save_new_oauth_tokens(new_refresh_token, new_access_token)
 
-            # We also save new tokens to class vars, so we can save them unencrypted if case statefile update fails
-            # in update_config_state() method.
+            # Also keep the new tokens on the class vars so the state-file save below
+            # persists them even if the encrypted update_config_state() API call failed.
             self.refresh_token = new_refresh_token
             self.access_token = new_access_token
 
@@ -219,7 +245,7 @@ class Component(ComponentBase):
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
-        url = f"https://encryption.{URL_SUFFIX}.com/encrypt"
+        url = f"https://encryption.{URL_SUFFIX}/encrypt"
         params = {
             "componentId": self.environment_variables.component_id,
             "projectId": self.environment_variables.project_id,

@@ -21,7 +21,7 @@ class QuickbooksClient:
     QuickBooks Requests Handler
     """
 
-    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox):
+    def __init__(self, company_id, access_token, refresh_token, oauth, sandbox, on_token_refresh=None):
         self.data_2 = None
         self.data = None
         self.app_key = oauth.appKey
@@ -38,6 +38,7 @@ class QuickbooksClient:
         self.access_token_refreshed = False
         self.new_refresh_token = False
         self.company_id = company_id
+        self.on_token_refresh = on_token_refresh
         self.reports_required_accounting_type = [
             "ProfitAndLoss",
             "ProfitAndLossDetail",
@@ -93,9 +94,6 @@ class QuickbooksClient:
             self.count = self.get_count()  # total count of records for pagination
             if self.count == 0:
                 logging.info("There are no returns for {0}".format(self.endpoint))
-                self.data = []
-            else:
-                self.data_request()
 
     @backoff.on_exception(backoff.expo, HTTPError, max_tries=3)
     def refresh_access_token(self):
@@ -121,6 +119,8 @@ class QuickbooksClient:
         self.access_token = results["access_token"]
         self.refresh_token = results["refresh_token"]
         self.access_token_refreshed = True
+        if self.on_token_refresh:
+            self.on_token_refresh(self.refresh_token, self.access_token)
 
     def get_count(self):
         """
@@ -157,6 +157,10 @@ class QuickbooksClient:
         request_success = False
         while not request_success:
             headers = {"Authorization": "Bearer " + self.access_token, "Accept": "application/json"}
+            if params is None:
+                params = {}
+            if "minorversion" not in params:
+                params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
             data = requesting.get(url, headers=headers, params=params)
 
@@ -182,7 +186,8 @@ class QuickbooksClient:
 
     def data_request(self):
         """
-        Handles Request Parameters and Pagination
+        Generator that yields one page of records at a time.
+        This keeps memory usage constant regardless of total record count.
         """
 
         num_of_run = 0
@@ -204,7 +209,7 @@ class QuickbooksClient:
             encoded_query = self.url_encode(query)
             url = "{0}/{1}/query?query={2}".format(self.base_url, self.company_id, encoded_query)
 
-            # Requests and concatenating results into class's data variable
+            # Requests
             results = self._request(url)
 
             # If API returns error, raise exception and terminate application
@@ -213,10 +218,9 @@ class QuickbooksClient:
 
             data = results["QueryResponse"][self.endpoint]
 
-            # Concatenate with exist extracted data
-            self.data = self.data + data
+            yield data
 
-            # Handling pagination paramters
+            # Handling pagination parameters
             self.startposition += self.maxresults
             num_of_run += 1
 

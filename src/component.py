@@ -84,25 +84,18 @@ class Component(ComponentBase):
             params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
         )
 
-        self.write_state_file(
-            {
-                "tokens": {
-                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
-                    "#refresh_token": self.refresh_token,
-                    "#access_token": self.access_token,
-                }
-            }
-        )
-
         quickbooks_param = QuickbooksClient(
             company_id=company_id,
             refresh_token=self.refresh_token,
             access_token=self.access_token,
             oauth=oauth,
             sandbox=sandbox,
+            on_token_refresh=self._on_token_refresh,
         )
 
         self.process_oauth_tokens(quickbooks_param)
+
+        self._save_tokens_to_state_file()
 
         # Fetching reports for each configured endpoint
         for endpoint in endpoints:
@@ -119,21 +112,16 @@ class Component(ComponentBase):
 
             # Phase 2: Mapping
             # Translate Input JSON file into CSV with configured mapping
-            # For different accounting_type,
-            # input_data will be outputting Accrual Type
-            # input_data_2 will be outputting Cash Type
             logging.info("Parsing API results...")
-            input_data = quickbooks_param.data
 
-            # if there are no data
-            # output blank
-            if len(input_data) == 0:
-                pass
-            else:
-                logging.info("Report API Template Enable: {0}".format(report_api_bool))
-                if report_api_bool:
+            if report_api_bool:
+                # Report endpoints: single response, no pagination
+                input_data = quickbooks_param.data
+                if len(input_data) == 0:
+                    pass
+                else:
+                    logging.info("Report API Template Enable: True")
                     if endpoint == "CustomQuery":
-                        # Not implemented
                         ReportMapping(endpoint=endpoint, data=input_data, query=self.start_date)
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
@@ -142,8 +130,13 @@ class Component(ComponentBase):
                             ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
                         else:
                             ReportMapping(endpoint=endpoint, data=input_data)
+            else:
+                # Data endpoints: stream page-by-page to keep memory constant
+                if quickbooks_param.count == 0:
+                    pass
                 else:
-                    Mapping(endpoint=endpoint, data=input_data)
+                    for page in quickbooks_param.data_request():
+                        Mapping(endpoint=endpoint, data=page, append=True)
 
     def get_tokens(self, oauth):
         try:
@@ -168,14 +161,30 @@ class Component(ComponentBase):
 
         return refresh_token, access_token
 
+    def _on_token_refresh(self, new_refresh_token: str, new_access_token: str) -> None:
+        """Callback invoked by the client whenever tokens are refreshed during the initial token refresh."""
+        self.refresh_token = new_refresh_token
+        self.access_token = new_access_token
+        self._save_tokens_to_state_file()
+
+    def _save_tokens_to_state_file(self) -> None:
+        """Writes the current tokens to the output state file so they persist for the next run."""
+        self.write_state_file(
+            {
+                "tokens": {
+                    "ts": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                    "#refresh_token": self.refresh_token,
+                    "#access_token": self.access_token,
+                }
+            }
+        )
+
     def process_oauth_tokens(self, client) -> None:
         """Uses Quickbooks client to get new tokens and saves them using API if they have changed since the last run."""
+        original_refresh_token = self.refresh_token
         new_refresh_token, new_access_token = client.get_new_refresh_token()
-        if self.refresh_token != new_refresh_token:
+        if original_refresh_token != new_refresh_token:
             self.save_new_oauth_tokens(new_refresh_token, new_access_token)
-
-            # We also save new tokens to class vars, so we can save them unencrypted if case statefile update fails
-            # in update_config_state() method.
             self.refresh_token = new_refresh_token
             self.access_token = new_access_token
 
@@ -219,7 +228,7 @@ class Component(ComponentBase):
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException, max_tries=5)
     def encrypt(self, token: str) -> str:
-        url = f"https://encryption.{URL_SUFFIX}.com/encrypt"
+        url = f"https://encryption.{URL_SUFFIX}/encrypt"
         params = {
             "componentId": self.environment_variables.component_id,
             "projectId": self.environment_variables.project_id,

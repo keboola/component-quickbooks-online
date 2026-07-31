@@ -187,7 +187,7 @@ class QuickbooksClient:
             if "minorversion" not in params:
                 params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
-            data = self._get(url, headers, params)
+            data = self._get(url, headers=headers, params=params)
 
             try:
                 results = json.loads(data.text)

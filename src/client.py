@@ -11,6 +11,17 @@ from typing import Tuple
 
 requesting = requests.Session()
 
+# Transport-level failures: the response body never arrived intact (a malformed or
+# truncated gzip / chunked body). They say nothing about the request itself, so the
+# very same GET repeated normally comes back fine. Seen in production as
+# "Received response with content-encoding: gzip, but failed to decode it.
+#  Error -3 while decompressing data: incorrect header check".
+TRANSPORT_ERRORS = (
+    requests.exceptions.ContentDecodingError,
+    requests.exceptions.ChunkedEncodingError,
+)
+TRANSPORT_MAX_TRIES = 5
+
 
 class QuickBooksClientException(Exception):
     pass
@@ -149,6 +160,20 @@ class QuickbooksClient:
         out = url_parse.quote_plus(query)
         return out
 
+    @backoff.on_exception(backoff.expo, TRANSPORT_ERRORS, max_tries=TRANSPORT_MAX_TRIES)
+    def _get(self, url, headers, params=None):
+        """
+        Performs the HTTP GET, retrying only when the response body itself failed to
+        arrive intact.
+
+        Every call made through here is a read-only GET, so repeating it is safe.
+        Whatever the server actually delivers - any status, any payload - is handed
+        back to the caller untouched, so response handling is unchanged. After the
+        last attempt the original exception is re-raised, so a persistent upstream
+        problem still fails the job.
+        """
+        return requesting.get(url, headers=headers, params=params)
+
     def _request(self, url, params=None):
         """
         Handles Request
@@ -162,7 +187,7 @@ class QuickbooksClient:
             if "minorversion" not in params:
                 params["minorversion"] = "75"
             logging.info(f"Requesting: {url} with params: {params}")
-            data = requesting.get(url, headers=headers, params=params)
+            data = self._get(url, headers, params)
 
             try:
                 results = json.loads(data.text)

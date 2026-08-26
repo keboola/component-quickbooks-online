@@ -78,7 +78,7 @@
       "format": "checkbox",
       "title": "Parse reports into rows (experimental)",
       "default": false,
-      "description": "Experimental. Flattens reports that are otherwise returned as a single JSON cell (GeneralLedger, TransactionList, ProfitAndLossDetail, CashFlow, TrialBalance) into tabular rows. The column layout follows your QuickBooks report configuration and may change if you change a report's columns or accounting method — not guaranteed stable long-term. Leave off to keep the raw single-cell JSON output (default).",
+      "description": "Experimental. Flattens reports that are otherwise returned as a single JSON cell (GeneralLedger, TransactionList, ProfitAndLossDetail, CashFlow, TrialBalance) into tabular rows. The column layout follows your QuickBooks report configuration and may change if you change a report's columns or accounting method — not guaranteed stable long-term. Turning this on changes the output table's columns, so run a Full Load (or drop the existing table) the first time you enable it. Leave off to keep the raw single-cell JSON output (default).",
       "propertyOrder": 4,
       "options": {
         "dependencies": {

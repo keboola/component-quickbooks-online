@@ -343,6 +343,28 @@ class TestReportMappingParseReportsIntegration(unittest.TestCase):
         manifest = self._read_manifest("CashFlow.csv")
         self.assertEqual(["ReportName", "StartPeriod", "EndPeriod"], manifest["primary_key"])
 
+    def test_parse_reports_true_falls_back_to_1cell_on_unexpected_flattening_error(self):
+        """
+        An UNEXPECTED error inside flatten_report (not ReportNotFlattenable) must not
+        fail the job: enabling this experimental flag can never turn a previously
+        working report into an exit-2 failure. It degrades to the single-cell JSON and
+        surfaces the error in the logs.
+        """
+        data = load_fixture("general_ledger.json")
+
+        with mock.patch.object(report_mapping_module, "flatten_report", side_effect=RuntimeError("boom")):
+            with self.assertLogs(level="WARNING") as logs:
+                ReportMapping(endpoint="GeneralLedger", data=data, parse_reports=True)
+
+        self.assertTrue(any("GeneralLedger" in message for message in logs.output))
+
+        with open(self._csv_path("GeneralLedger.csv")) as f:
+            rows = list(csv.reader(f))
+
+        self.assertEqual(2, len(rows))
+        self.assertEqual(["ReportName", "StartPeriod", "EndPeriod", "value"], rows[0])
+        self.assertEqual(data, json.loads(rows[1][3]))
+
 
 if __name__ == "__main__":
     unittest.main()

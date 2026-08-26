@@ -64,6 +64,17 @@ class ReportMapping:
                         e,
                     )
                     self._output_report_as_1cell()
+                except Exception:
+                    # Experimental, opt-in feature: never let an unexpected flattening
+                    # error fail the whole job. The raw JSON is always still available,
+                    # so degrade to the single-cell output and surface the error in logs.
+                    logging.warning(
+                        "Unexpected error flattening report '%s'; falling back to "
+                        "single-cell JSON output.",
+                        self.endpoint,
+                        exc_info=True,
+                    )
+                    self._output_report_as_1cell()
                 else:
                     primary_key = self.columns + ["row_number"]
                     self.output_rows(self.endpoint, flat_rows, flat_columns, primary_key)

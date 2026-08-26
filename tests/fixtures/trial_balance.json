@@ -1,0 +1,60 @@
+{
+  "Header": {
+    "Time": "2026-02-01T03:00:00-08:00",
+    "ReportName": "TrialBalance",
+    "DateMacro": "this month",
+    "StartPeriod": "2026-01-01",
+    "EndPeriod": "2026-01-31",
+    "Currency": "USD"
+  },
+  "Columns": {
+    "Column": [
+      {
+        "ColTitle": "",
+        "ColType": "Account",
+        "MetaData": [{"Name": "ColKey", "Value": "account_name"}]
+      },
+      {
+        "ColTitle": "Debit",
+        "ColType": "Money",
+        "MetaData": [{"Name": "ColKey", "Value": "debit_amt"}]
+      },
+      {
+        "ColTitle": "Credit",
+        "ColType": "Money",
+        "MetaData": [{"Name": "ColKey", "Value": "credit_amt"}]
+      }
+    ]
+  },
+  "Rows": {
+    "Row": [
+      {
+        "type": "Data",
+        "ColData": [
+          {"value": "Checking", "id": "35"},
+          {"value": "1000.00"},
+          {"value": ""}
+        ]
+      },
+      {
+        "type": "Data",
+        "ColData": [
+          {"value": "Accounts Payable", "id": "33"},
+          {"value": ""},
+          {"value": "1000.00"}
+        ]
+      },
+      {
+        "type": "Section",
+        "group": "GrandTotal",
+        "Summary": {
+          "ColData": [
+            {"value": "TOTAL"},
+            {"value": "1000.00"},
+            {"value": "1000.00"}
+          ]
+        }
+      }
+    ]
+  }
+}

@@ -26,6 +26,7 @@ KEY_END_DATE = "end_date"
 KEY_GROUP_DESTINATION = "destination"
 KEY_LOAD_TYPE = "load_type"
 KEY_SUMMARIZE_COLUMN_BY = "summarize_column_by"
+KEY_PARSE_REPORTS = "parse_reports"
 
 # list of mandatory parameters => if some is missing,
 # component will fail with readable message on initialization.
@@ -84,6 +85,8 @@ class Component(ComponentBase):
             params.get(KEY_SUMMARIZE_COLUMN_BY) if params.get(KEY_SUMMARIZE_COLUMN_BY) else self.summarize_column_by
         )
 
+        parse_reports = bool(params.get(KEY_PARSE_REPORTS, False))
+
         quickbooks_param = QuickbooksClient(
             company_id=company_id,
             refresh_token=self.refresh_token,
@@ -126,10 +129,20 @@ class Component(ComponentBase):
                     else:
                         if endpoint in quickbooks_param.reports_required_accounting_type:
                             input_data_2 = quickbooks_param.data_2
-                            ReportMapping(endpoint=endpoint, data=input_data, accounting_type="accrual")
-                            ReportMapping(endpoint=endpoint, data=input_data_2, accounting_type="cash")
+                            ReportMapping(
+                                endpoint=endpoint,
+                                data=input_data,
+                                accounting_type="accrual",
+                                parse_reports=parse_reports,
+                            )
+                            ReportMapping(
+                                endpoint=endpoint,
+                                data=input_data_2,
+                                accounting_type="cash",
+                                parse_reports=parse_reports,
+                            )
                         else:
-                            ReportMapping(endpoint=endpoint, data=input_data)
+                            ReportMapping(endpoint=endpoint, data=input_data, parse_reports=parse_reports)
             else:
                 # Data endpoints: stream page-by-page to keep memory constant
                 if quickbooks_param.count == 0:

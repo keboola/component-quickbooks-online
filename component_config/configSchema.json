@@ -73,16 +73,29 @@
       "description": "Select which reports you want to process.",
       "propertyOrder": 3
     },
+    "parse_reports": {
+      "type": "boolean",
+      "format": "checkbox",
+      "title": "Parse reports into rows (experimental)",
+      "default": false,
+      "description": "Experimental. Flattens reports that are otherwise returned as a single JSON cell (GeneralLedger, TransactionList, ProfitAndLossDetail, CashFlow, TrialBalance) into tabular rows. The column layout follows your QuickBooks report configuration and may change if you change a report's columns or accounting method — not guaranteed stable long-term. Leave off to keep the raw single-cell JSON output (default).",
+      "propertyOrder": 4,
+      "options": {
+        "dependencies": {
+          "reports": true
+        }
+      }
+    },
     "summarize_column_by": {
       "title": "Summarize Column By (optional)",
       "description": "Enables Grouping for ProfitAndLossQuery** endpoint. Does not affect other reports.",
       "type": "string",
-      "propertyOrder": 4
+      "propertyOrder": 5
     },
     "date_settings": {
       "type": "object",
       "title": "Date Settings",
-      "propertyOrder": 5,
+      "propertyOrder": 6,
       "properties": {
         "start_date": {
           "title": "Start Date",
@@ -108,7 +121,7 @@
     "destination": {
       "title": "Destination",
       "type": "object",
-      "propertyOrder": 6,
+      "propertyOrder": 7,
       "required": [
         "load_type"
       ],

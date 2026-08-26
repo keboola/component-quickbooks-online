@@ -1,0 +1,15 @@
+{
+  "Header": {
+    "Time": "2026-02-01T03:00:00-08:00",
+    "ReportName": "CashFlow",
+    "StartPeriod": "2026-01-01",
+    "EndPeriod": "2026-01-31",
+    "Currency": "USD"
+  },
+  "Columns": {
+    "Column": []
+  },
+  "Rows": {
+    "Row": []
+  }
+}

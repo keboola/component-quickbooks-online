@@ -22,6 +22,59 @@ TRANSPORT_ERRORS = (
 )
 TRANSPORT_MAX_TRIES = 5
 
+# GeneralLedger report columns. The amount columns the API accepts depend on the company's
+# multicurrency setting; requesting the wrong set yields empty amount columns.
+GENERAL_LEDGER_COMMON_COLUMNS = [
+    "klass_name",
+    "account_name",
+    "account_num",
+    "chk_print_state",
+    "create_by",
+    "create_date",
+    "cust_name",
+    "doc_num",
+    "emp_name",
+    "inv_date",
+    "is_adj",
+    "is_ap_paid",
+    "is_ar_paid",
+    "is_cleared",
+    "item_name",
+    "last_mod_by",
+    "last_mod_date",
+    "memo",
+    "name",
+    "quantity",
+    "rate",
+    "split_acc",
+    "tx_date",
+    "txn_type",
+    "vend_name",
+    "tax_code",
+    "dept_name",
+]
+GENERAL_LEDGER_SINGLE_CURRENCY_COLUMNS = [
+    "net_amount",
+    "tax_amount",
+    "subt_nat_amount",
+    "rbal_nat_amount",
+    "debt_amt",
+    "credit_amt",
+]
+GENERAL_LEDGER_MULTI_CURRENCY_COLUMNS = [
+    "home_net_amount",
+    "home_tax_amount",
+    "subt_nat_home_amount",
+    "rbal_nat_home_amount",
+    "debt_home_amt",
+    "credit_home_amt",
+    "currency",
+    "exch_rate",
+    "nat_foreign_amount",
+    "nat_home_open_bal",
+    "nat_foreign_open_bal",
+]
+
 
 class QuickBooksClientException(Exception):
     pass
@@ -50,6 +103,7 @@ class QuickbooksClient:
         self.new_refresh_token = False
         self.company_id = company_id
         self.on_token_refresh = on_token_refresh
+        self._multicurrency_enabled = None
         self.reports_required_accounting_type = [
             "ProfitAndLoss",
             "ProfitAndLossDetail",
@@ -275,6 +329,38 @@ class QuickbooksClient:
         # Concatenate with exist extracted data
         self.data = data
 
+    def is_multicurrency_enabled(self):
+        """
+        Returns the company's multicurrency setting (Preferences.CurrencyPrefs.MultiCurrencyEnabled).
+        Falls back to False when the preference cannot be read.
+        """
+        if self._multicurrency_enabled is not None:
+            return self._multicurrency_enabled
+
+        encoded_query = self.url_encode("select * from Preferences")
+        url = "{0}/{1}/query?query={2}".format(self.base_url, self.company_id, encoded_query)
+        try:
+            results = self._request(url)
+            preferences = results["QueryResponse"]["Preferences"][0]
+            enabled = bool(preferences.get("CurrencyPrefs", {}).get("MultiCurrencyEnabled", False))
+        except (QuickBooksClientException, KeyError, IndexError, TypeError) as e:
+            logging.warning(f"Unable to read company multicurrency preference, assuming single currency: {e}")
+            enabled = False
+
+        logging.info(f"Company multicurrency enabled: {enabled}")
+        self._multicurrency_enabled = enabled
+        return enabled
+
+    def get_general_ledger_columns(self):
+        """
+        Builds the columns parameter for the GeneralLedger report according to the multicurrency setting.
+        """
+        if self.is_multicurrency_enabled():
+            amount_columns = GENERAL_LEDGER_MULTI_CURRENCY_COLUMNS
+        else:
+            amount_columns = GENERAL_LEDGER_SINGLE_CURRENCY_COLUMNS
+        return ",".join(GENERAL_LEDGER_COMMON_COLUMNS + amount_columns)
+
     def report_request(self, endpoint, start_date, end_date, params=None):
         """
         API request for Report Endpoint
@@ -285,13 +371,7 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = (
-                    "?columns=klass_name,account_name,account_num,chk_print_state,create_by,create_date,"
-                    "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name,"
-                    "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name,"
-                    "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt,"
-                    "credit_amt "
-                )
+                date_param = "?columns={0}".format(self.get_general_ledger_columns())
         else:
             startdate = (dateparser.parse(start_date)).strftime("%Y-%m-%d")
             enddate = (dateparser.parse(end_date)).strftime("%Y-%m-%d")
@@ -303,15 +383,7 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = (
-                    date_param + "&columns=dklass_name,account_name,account_num,chk_print_state,"
-                    "create_by,create_date,cust_name,doc_num,emp_name,inv_date,is_adj,"
-                    "is_ap_paid,is_ar_paid,"
-                    "is_cleared,item_name,last_mod_by,last_mod_date,memo,name,quantity,rate,"
-                    "split_acc,tx_date,"
-                    "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name,"
-                    "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt"
-                )
+                date_param = date_param + "&columns={0}".format(self.get_general_ledger_columns())
 
         url = "{0}/{1}/reports/{2}{3}".format(self.base_url, self.company_id, endpoint, date_param)
         if endpoint in self.reports_required_accounting_type:

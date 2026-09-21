@@ -22,45 +22,36 @@ TRANSPORT_ERRORS = (
 )
 TRANSPORT_MAX_TRIES = 5
 
-# GeneralLedger report columns. The amount columns the API accepts depend on the company's
-# multicurrency setting; requesting the wrong set yields empty amount columns.
-GENERAL_LEDGER_COMMON_COLUMNS = [
-    "klass_name",
-    "account_name",
-    "account_num",
-    "chk_print_state",
-    "create_by",
-    "create_date",
-    "cust_name",
-    "doc_num",
-    "emp_name",
-    "inv_date",
-    "is_adj",
-    "is_ap_paid",
-    "is_ar_paid",
-    "is_cleared",
-    "item_name",
-    "last_mod_by",
-    "last_mod_date",
-    "memo",
-    "name",
-    "quantity",
-    "rate",
-    "split_acc",
-    "tx_date",
-    "txn_type",
-    "vend_name",
-    "tax_code",
-    "dept_name",
-]
-GENERAL_LEDGER_SINGLE_CURRENCY_COLUMNS = [
-    "net_amount",
-    "tax_amount",
-    "subt_nat_amount",
-    "rbal_nat_amount",
-    "debt_amt",
-    "credit_amt",
-]
+# GeneralLedger report columns (SUPPORT-17563).
+#
+# Which amount columns the report can fill depends on the company multicurrency setting.
+# In a multicurrency company the API answers debt_amt / credit_amt with the FOREIGN
+# (transaction currency) amounts and leaves net_amount, tax_amount, subt_nat_amount and
+# rbal_nat_amount empty. The home currency amounts live in the *_home_* columns, which
+# this component never requested - that is why multicurrency companies got empty amount
+# columns.
+#
+# The two legacy column strings below are kept character for character, including the
+# historical "dklass_name" typo and the trailing space. A single currency company
+# therefore sends exactly the same request as before this change. A multicurrency company
+# sends the same columns PLUS the home currency ones, so the report keeps every column it
+# returns today and only gains the amounts that were missing.
+GENERAL_LEDGER_LEGACY_COLUMNS = (
+    "klass_name,account_name,account_num,chk_print_state,create_by,create_date,"
+    "cust_name,doc_num,emp_name,inv_date,is_adj,is_ap_paid,is_ar_paid,is_cleared,item_name,"
+    "last_mod_by,last_mod_date,memo,name,quantity,rate,split_acc,tx_date,txn_type,vend_name,"
+    "net_amount,tax_amount,tax_code,dept_name,subt_nat_amount,rbal_nat_amount,debt_amt,"
+    "credit_amt "
+)
+GENERAL_LEDGER_LEGACY_COLUMNS_DATED = (
+    "dklass_name,account_name,account_num,chk_print_state,"
+    "create_by,create_date,cust_name,doc_num,emp_name,inv_date,is_adj,"
+    "is_ap_paid,is_ar_paid,"
+    "is_cleared,item_name,last_mod_by,last_mod_date,memo,name,quantity,rate,"
+    "split_acc,tx_date,"
+    "txn_type,vend_name,net_amount,tax_amount,tax_code,dept_name,"
+    "subt_nat_amount,rbal_nat_amount,debt_amt,credit_amt"
+)
 GENERAL_LEDGER_MULTI_CURRENCY_COLUMNS = [
     "home_net_amount",
     "home_tax_amount",
@@ -331,35 +322,43 @@ class QuickbooksClient:
 
     def is_multicurrency_enabled(self):
         """
-        Returns the company's multicurrency setting (Preferences.CurrencyPrefs.MultiCurrencyEnabled).
-        Falls back to False when the preference cannot be read.
+        Returns the company multicurrency setting, read once per client instance from
+        Preferences.CurrencyPrefs.MultiCurrencyEnabled. Falls back to False when the
+        preference cannot be read.
         """
-        if self._multicurrency_enabled is not None:
-            return self._multicurrency_enabled
+        if self._multicurrency_enabled is None:
+            self._multicurrency_enabled = self._read_multicurrency_preference()
+            logging.info(f"Company multicurrency enabled: {self._multicurrency_enabled}")
+        return self._multicurrency_enabled
 
+    def _read_multicurrency_preference(self):
+        """
+        Reads Preferences.CurrencyPrefs.MultiCurrencyEnabled.
+
+        This is an extra request that the component did not make before, so it must never
+        be the reason a run fails: any error at all is logged and reported as "single
+        currency", which keeps the previous behaviour.
+        """
         encoded_query = self.url_encode("select * from Preferences")
         url = "{0}/{1}/query?query={2}".format(self.base_url, self.company_id, encoded_query)
         try:
             results = self._request(url)
             preferences = results["QueryResponse"]["Preferences"][0]
-            enabled = bool(preferences.get("CurrencyPrefs", {}).get("MultiCurrencyEnabled", False))
-        except (QuickBooksClientException, KeyError, IndexError, TypeError) as e:
-            logging.warning(f"Unable to read company multicurrency preference, assuming single currency: {e}")
-            enabled = False
+            return bool(preferences.get("CurrencyPrefs", {}).get("MultiCurrencyEnabled", False))
+        except Exception as e:
+            logging.warning(f"Unable to read the company multicurrency preference, assuming single currency: {e}")
+            return False
 
-        logging.info(f"Company multicurrency enabled: {enabled}")
-        self._multicurrency_enabled = enabled
-        return enabled
+    def get_general_ledger_columns(self, legacy_columns):
+        """
+        Builds the GeneralLedger "columns" parameter.
 
-    def get_general_ledger_columns(self):
+        Single currency company: the legacy column string, unchanged.
+        Multicurrency company: the same columns plus the home currency ones (additive only).
         """
-        Builds the columns parameter for the GeneralLedger report according to the multicurrency setting.
-        """
-        if self.is_multicurrency_enabled():
-            amount_columns = GENERAL_LEDGER_MULTI_CURRENCY_COLUMNS
-        else:
-            amount_columns = GENERAL_LEDGER_SINGLE_CURRENCY_COLUMNS
-        return ",".join(GENERAL_LEDGER_COMMON_COLUMNS + amount_columns)
+        if not self.is_multicurrency_enabled():
+            return legacy_columns
+        return "{0},{1}".format(legacy_columns.strip(), ",".join(GENERAL_LEDGER_MULTI_CURRENCY_COLUMNS))
 
     def report_request(self, endpoint, start_date, end_date, params=None):
         """
@@ -371,7 +370,9 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = "?columns={0}".format(self.get_general_ledger_columns())
+                date_param = "?columns={0}".format(
+                    self.get_general_ledger_columns(GENERAL_LEDGER_LEGACY_COLUMNS)
+                )
         else:
             startdate = (dateparser.parse(start_date)).strftime("%Y-%m-%d")
             enddate = (dateparser.parse(end_date)).strftime("%Y-%m-%d")
@@ -383,7 +384,9 @@ class QuickbooksClient:
 
             # For GeneralLedger ONLY
             if endpoint == "GeneralLedger":
-                date_param = date_param + "&columns={0}".format(self.get_general_ledger_columns())
+                date_param = date_param + "&columns={0}".format(
+                    self.get_general_ledger_columns(GENERAL_LEDGER_LEGACY_COLUMNS_DATED)
+                )
 
         url = "{0}/{1}/reports/{2}{3}".format(self.base_url, self.company_id, endpoint, date_param)
         if endpoint in self.reports_required_accounting_type:

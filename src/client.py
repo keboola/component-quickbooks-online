@@ -345,7 +345,7 @@ class QuickbooksClient:
             results = self._request(url)
             preferences = results["QueryResponse"]["Preferences"][0]
             return bool(preferences.get("CurrencyPrefs", {}).get("MultiCurrencyEnabled", False))
-        except Exception as e:
+        except (QuickBooksClientException, requests.exceptions.RequestException, KeyError, IndexError, TypeError) as e:
             logging.warning(f"Unable to read the company multicurrency preference, assuming single currency: {e}")
             return False
 

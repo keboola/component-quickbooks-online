@@ -182,7 +182,27 @@ class Component(ComponentBase):
     def process_oauth_tokens(self, client) -> None:
         """Uses Quickbooks client to get new tokens and saves them using API if they have changed since the last run."""
         original_refresh_token = self.refresh_token
-        new_refresh_token, new_access_token = client.get_new_refresh_token()
+        try:
+            new_refresh_token, new_access_token = client.get_new_refresh_token()
+        except QuickBooksClientException as e:
+            # Intuit's token endpoint answers 400 (invalid_grant) / 401 when the stored
+            # authorization is expired, revoked or issued for another app. Only the user
+            # can fix that by re-authorizing, so fail with a clear message instead of an
+            # internal error. Any other failure is re-raised unchanged.
+            cause = e.__cause__
+            status = getattr(getattr(cause, "response", None), "status_code", None)
+            if isinstance(cause, requests.exceptions.HTTPError) and status in (400, 401):
+                try:
+                    error_code = cause.response.json().get("error")
+                except Exception:
+                    error_code = None
+                detail = f"HTTP {status}, {error_code}" if error_code else f"HTTP {status}"
+                raise UserException(
+                    f"Failed to refresh the QuickBooks access token ({detail}). The stored "
+                    "authorization is expired, revoked or invalid. Please re-authorize the "
+                    "QuickBooks account in the configuration."
+                ) from e
+            raise
         if original_refresh_token != new_refresh_token:
             self.save_new_oauth_tokens(new_refresh_token, new_access_token)
             self.refresh_token = new_refresh_token

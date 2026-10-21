@@ -5,6 +5,9 @@ import json
 import pandas as pd
 import copy
 
+from keboola.csvwriter import ElasticDictWriter
+from report_flattener import flatten_report, ReportNotFlattenable
+
 # destination to fetch and output files
 cwd_parent = os.path.dirname(os.getcwd())
 DEFAULT_FILE_INPUT = os.path.join(cwd_parent, "data/in/tables/")
@@ -16,7 +19,7 @@ class ReportMapping:
     Parser dedicated for Report endpoint
     """
 
-    def __init__(self, endpoint, data, query="", accounting_type=""):
+    def __init__(self, endpoint, data, query="", accounting_type="", parse_reports=False):
         # Parameters
         self.endpoint = endpoint
         self.data = data
@@ -25,6 +28,7 @@ class ReportMapping:
         self.primary_key = ["ReportName", "StartPeriod", "EndPeriod"]
         self.query = query
         self.accounting_type = accounting_type
+        self.parse_reports = parse_reports
         # Output
         self.data_out = []
 
@@ -48,12 +52,34 @@ class ReportMapping:
             self.output_1cell(self.endpoint, self.columns, self.data_out, self.pk)
 
         else:  # Outputting tables which cannot parse
-            for item in self.columns:
-                self.data_out.append(self.header[item])
-
-            self.data_out.append("{0}".format(json.dumps(data)))
-            self.columns.append("value")
-            self.output_1cell(self.endpoint, self.columns, self.data_out, self.primary_key)
+            if self.parse_reports:
+                base_row = {item: self.header[item] for item in self.columns}
+                try:
+                    flat_rows, flat_columns = flatten_report(data, base_row)
+                except ReportNotFlattenable as e:
+                    logging.warning(
+                        "Report '%s' could not be flattened into rows (%s). Falling back to "
+                        "single-cell JSON output.",
+                        self.endpoint,
+                        e,
+                    )
+                    self._output_report_as_1cell()
+                except Exception:
+                    # Experimental, opt-in feature: never let an unexpected flattening
+                    # error fail the whole job. The raw JSON is always still available,
+                    # so degrade to the single-cell output and surface the error in logs.
+                    logging.warning(
+                        "Unexpected error flattening report '%s'; falling back to "
+                        "single-cell JSON output.",
+                        self.endpoint,
+                        exc_info=True,
+                    )
+                    self._output_report_as_1cell()
+                else:
+                    primary_key = self.columns + ["row_number"]
+                    self.output_rows(self.endpoint, flat_rows, flat_columns, primary_key)
+            else:
+                self._output_report_as_1cell()
 
     @staticmethod
     def construct_header(data):
@@ -188,6 +214,20 @@ class ReportMapping:
             logging.error("Could not produce output file manifest.")
             logging.error(e)
 
+    def _output_report_as_1cell(self):
+        """
+        Outputs the whole report response as a single JSON cell. This is the default,
+        unparsed behaviour for `report_cant_parse` reports and the fallback used when
+        `parse_reports` is enabled but the response cannot be flattened.
+        """
+
+        for item in self.columns:
+            self.data_out.append(self.header[item])
+
+        self.data_out.append("{0}".format(json.dumps(self.data)))
+        self.columns.append("value")
+        self.output_1cell(self.endpoint, self.columns, self.data_out, self.primary_key)
+
     def output(self, endpoint, data, pk):
         """
         Outputting JSON
@@ -227,4 +267,27 @@ class ReportMapping:
             writer.writerows(data_out)
         f.close()
         logging.info("Outputting {0}... ".format(filename))
+        self.produce_manifest(filename, pk)
+
+    def output_rows(self, endpoint, rows, columns, pk):
+        """
+        Outputs flattened report rows (see report_flattener.flatten_report) using
+        ElasticDictWriter, so any within-run column superset across rows is unioned
+        into a single valid header.
+        """
+
+        if self.accounting_type == "":
+            filename = endpoint + ".csv"
+        else:
+            filename = "{0}_{1}.csv".format(endpoint, self.accounting_type)
+
+        file_out_path = DEFAULT_FILE_DESTINATION + filename
+        logging.info("Outputting {0}...".format(filename))
+
+        # ElasticDictWriter mutates the fieldnames list it is given - pass a copy.
+        writer = ElasticDictWriter(file_out_path, columns.copy())
+        writer.writeheader()
+        writer.writerows(rows)
+        writer.close()
+
         self.produce_manifest(filename, pk)
